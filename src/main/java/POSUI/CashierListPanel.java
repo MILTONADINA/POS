@@ -101,7 +101,9 @@ public class CashierListPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
                         Cashier selected = list.getSelectedValue();
                         store.removeCashier(selected);
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         listModel.removeElement(selected);
                         btnDelete.setEnabled(false);
                     }

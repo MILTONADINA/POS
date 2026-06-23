@@ -92,7 +92,9 @@ public class ItemEditPanel extends JPanel {
                         item.setDescription(textField_1.getText());
                         item.setTaxCategory((TaxCategory) comboBox.getSelectedItem());
                         if (isAdd) store.addItem(item);
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()
@@ -246,7 +248,9 @@ public class ItemEditPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         item.removeUPC(list.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel.removeElement(list.getSelectedValue());
                         btnDelete.setEnabled(false);
@@ -305,7 +309,9 @@ public class ItemEditPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         item.removePrice(list_1.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel_1.removeElement(list_1.getSelectedValue());
                         btnDelete_1.setEnabled(false);

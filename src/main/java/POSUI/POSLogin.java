@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -95,8 +96,18 @@ public class POSLogin extends JPanel {
                             return;
                         }
                         String password = new String(passwordField.getPassword());
-                        Optional<Session> sessionOpt =
-                                storeService.login(cashier.getNumber(), password, register);
+                        Optional<Session> sessionOpt;
+                        try {
+                            sessionOpt =
+                                    storeService.login(cashier.getNumber(), password, register);
+                        } catch (POSDM.StorePersistenceException ex) {
+                            JOptionPane.showMessageDialog(
+                                    POSLogin.this,
+                                    "Login could not be saved: " + ex.getMessage(),
+                                    "Save failed",
+                                    JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
                         if (sessionOpt.isPresent()) {
                             register.getCashDrawer().addCash(startingCash);
                             currentFrame.getContentPane().removeAll();

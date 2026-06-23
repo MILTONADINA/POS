@@ -36,7 +36,9 @@ public class StoreEditPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         storeService.getStore().setName(textField.getText());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame.getContentPane().add(new POSHome(currentFrame, storeService));
                         currentFrame.getContentPane().revalidate();

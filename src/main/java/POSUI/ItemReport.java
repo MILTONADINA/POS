@@ -8,11 +8,13 @@ import POSPD.StoreService;
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -44,15 +46,29 @@ public class ItemReport extends JPanel {
         btnGenerate.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent arg0) {
+                        LocalDate selectedDate = datePicker.getDate();
+                        if (selectedDate == null) {
+                            JOptionPane.showMessageDialog(
+                                    ItemReport.this,
+                                    "Please select a date.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         HashMap<Item, Integer> map = new HashMap<Item, Integer>();
                         int temp;
                         textArea.setText(
                                 "Item report for "
-                                        + datePicker
-                                                .getDate()
-                                                .format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                                        + selectedDate.format(
+                                                DateTimeFormatter.ofPattern("M/d/yyyy"))
                                         + "\n\n");
                         for (Session s : storeService.getStore().getSessions()) {
+                            if (s.getEndDateTime() == null) {
+                                continue;
+                            }
+                            if (!s.getEndDateTime().toLocalDate().isEqual(selectedDate)) {
+                                continue;
+                            }
                             for (Sale sa : s.getSales()) {
                                 for (SaleLineItem sli : sa.getSaleLineItems()) {
                                     if (map.containsKey(sli.getItem())) {

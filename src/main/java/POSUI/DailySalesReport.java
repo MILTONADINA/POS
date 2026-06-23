@@ -11,10 +11,12 @@ import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -46,11 +48,19 @@ public class DailySalesReport extends JPanel {
         btnGenerate.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent arg0) {
+                        LocalDate selectedDate = datePicker.getDate();
+                        if (selectedDate == null) {
+                            JOptionPane.showMessageDialog(
+                                    DailySalesReport.this,
+                                    "Please select a date.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         textArea.setText(
                                 "Daily Sales Report for "
-                                        + datePicker
-                                                .getDate()
-                                                .format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                                        + selectedDate.format(
+                                                DateTimeFormatter.ofPattern("M/d/yyyy"))
                                         + "\n\n");
                         textArea.append("Sales\tItems\tCash\tCheck\tCredit\n");
                         int totSales = 0;
@@ -62,7 +72,7 @@ public class DailySalesReport extends JPanel {
                             if (s.getEndDateTime() == null) {
                                 continue; // skip active/un-ended sessions
                             }
-                            if (s.getEndDateTime().toLocalDate().equals(datePicker.getDate())) {
+                            if (s.getEndDateTime().toLocalDate().equals(selectedDate)) {
                                 totSales += s.getSales().size();
                                 for (Sale sa : s.getSales()) {
                                     totNumItems += sa.getSaleLineItems().size();

@@ -73,7 +73,9 @@ public class TaxCategoryEditPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
                         taxCategory.setCategory(textField.getText());
                         if (isAdd) store.addTaxCategory(taxCategory);
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()
@@ -173,7 +175,9 @@ public class TaxCategoryEditPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         taxCategory.removeTaxRate(list.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel.removeElement(list.getSelectedValue());
                         btnDelete.setEnabled(false);

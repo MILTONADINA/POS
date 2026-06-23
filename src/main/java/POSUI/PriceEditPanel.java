@@ -141,7 +141,9 @@ public class PriceEditPanel extends JPanel {
                             ((PromoPrice) price).setEndDate(end);
                         }
                         item.addPrice(price);
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame.getContentPane().add(currentPanel);
                         currentFrame.getContentPane().repaint();

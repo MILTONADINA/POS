@@ -50,7 +50,9 @@ public class UpcEditPanel extends JPanel {
                             item.addUPC(upc);
                             store.addUPC(upc);
                         }
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame.getContentPane().add(currentPanel);
                         currentFrame.getContentPane().repaint();

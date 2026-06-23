@@ -45,7 +45,9 @@ public class RegisterEditPanel extends JPanel {
 
                         if (isAdd) store.addRegister(register);
 
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()

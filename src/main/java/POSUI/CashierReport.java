@@ -7,10 +7,12 @@ import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -45,19 +47,27 @@ public class CashierReport extends JPanel {
         btnGenerate.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent arg0) {
+                        LocalDate selectedDate = datePicker.getDate();
+                        if (selectedDate == null) {
+                            JOptionPane.showMessageDialog(
+                                    CashierReport.this,
+                                    "Please select a date.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         total = new BigDecimal(0);
                         textArea.setText(
                                 "Cashier report for "
-                                        + datePicker
-                                                .getDate()
-                                                .format(DateTimeFormatter.ofPattern("M/d/yyyy"))
+                                        + selectedDate.format(
+                                                DateTimeFormatter.ofPattern("M/d/yyyy"))
                                         + "\n\n");
                         textArea.append("Number\tName\t\tCount\tAmount\n");
                         for (Session s : storeService.getStore().getSessions()) {
                             if (s.getEndDateTime() == null) {
                                 continue; // skip active/un-ended sessions
                             }
-                            if (s.getEndDateTime().toLocalDate().isEqual(datePicker.getDate())) {
+                            if (s.getEndDateTime().toLocalDate().isEqual(selectedDate)) {
                                 amount = new BigDecimal(0);
                                 for (Sale sa : s.getSales()) {
                                     amount =

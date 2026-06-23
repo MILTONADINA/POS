@@ -97,7 +97,9 @@ public class RegisterListPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         store.removeRegister(list.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel.removeElement(list.getSelectedValue());
                         btnDelete.setEnabled(false);

@@ -72,7 +72,9 @@ public class CashierEditPanel extends JPanel {
                             cashier.getPerson().setCashier(cashier);
                             store.addCashier(cashier);
                         }
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         currentFrame.getContentPane().removeAll();
                         currentFrame

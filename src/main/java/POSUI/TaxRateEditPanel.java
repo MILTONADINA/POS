@@ -81,7 +81,9 @@ public class TaxRateEditPanel extends JPanel {
                         taxRate.setTaxRate(rate);
                         taxRate.setEffectiveDate(effective);
                         taxCategory.addTaxRate(taxRate);
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame.getContentPane().add(currentPanel);
                         currentFrame.getContentPane().repaint();

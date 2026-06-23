@@ -94,7 +94,9 @@ public class ItemListPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         store.removeItem(list.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel.removeElement(list.getSelectedValue());
                         btnDelete.setEnabled(false);

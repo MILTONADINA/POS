@@ -98,7 +98,9 @@ public class TaxCategoryListPanel extends JPanel {
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         store.removeTaxCategory(list.getSelectedValue());
-                        storeService.saveStoreState();
+                        if (!SaveSupport.saveOrWarn(null, storeService)) {
+                            return;
+                        }
 
                         listModel.removeElement(list.getSelectedValue());
                         btnDelete.setEnabled(false);
