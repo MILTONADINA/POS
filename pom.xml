@@ -28,7 +28,7 @@
         <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
         <shade.plugin.version>3.5.3</shade.plugin.version>
         <exec.plugin.version>3.1.0</exec.plugin.version>
-        <spotless.plugin.version>2.43.0</spotless.plugin.version>
+        <spotless.plugin.version>3.7.0</spotless.plugin.version>
         <google.java.format.version>1.22.0</google.java.format.version>
         <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
         <findsecbugs.version>1.13.0</findsecbugs.version>
