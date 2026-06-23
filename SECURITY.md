@@ -85,7 +85,11 @@ semgrep scan --config p/java --config p/security-audit --config p/secrets src/
 mvn verify        # includes SpotBugs + find-sec-bugs as a build gate
 ```
 
-The latest pass across all of the above was **zero findings**.
+The latest pass across all of the above was **zero findings**. A full
+[security assessment](docs/SECURITY-ASSESSMENT.md) — attack-surface enumeration plus the disposition
+of an offensive/defensive toolchain (Nmap, Nuclei, ZAP, sqlmap, Metasploit, Hashcat/Hydra, C2/AD
+tooling, IDS/SIEM/DFIR) against this desktop target — documents why the network/web/AD tools have no
+surface here and records the applied SAST/SCA/secret/credential results.
 
 ### Why no DAST (e.g. OWASP ZAP)?
 
