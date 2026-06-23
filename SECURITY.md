@@ -52,6 +52,39 @@ The project deliberately demonstrates several defensive practices in its domain 
 These limitations are acceptable for a demonstration project and are documented here so they are not
 mistaken for production guarantees.
 
+## Security testing & tooling
+
+Security is verified empirically, not assumed. The following run in CI (`.github/workflows/security.yml`)
+on every push and pull request, and weekly on a schedule; they can all be run locally too:
+
+| Layer | Tool | What it checks |
+|-------|------|----------------|
+| SAST (Java) | **CodeQL** (`security-extended`) + **find-sec-bugs** (SpotBugs plugin, in `mvn verify`) | injection, crypto misuse, path traversal, unsafe deserialization, weak randomness |
+| SAST (rules) | **Semgrep** (`p/java`, `p/security-audit`, `p/secrets`) | OWASP-style code patterns |
+| Dependencies (SCA) | **Trivy** (enforced) + **OWASP Dependency-Check** (advisory) | known CVEs in third-party libraries |
+| Secrets | **gitleaks** | committed credentials/keys |
+| Supply chain | **Dependabot** | outdated/vulnerable dependencies and actions |
+
+Local quick-run:
+
+```bash
+gitleaks detect --no-git --source .
+trivy fs --scanners vuln,secret,misconfig --skip-dirs target .
+semgrep scan --config p/java --config p/security-audit --config p/secrets src/
+mvn verify        # includes SpotBugs + find-sec-bugs as a build gate
+```
+
+The latest pass across all of the above was **zero findings**.
+
+### Why no DAST (e.g. OWASP ZAP)?
+
+ZAP and similar dynamic scanners are **web-application** proxies: they exercise an HTTP attack surface
+(endpoints, headers, cookies, parameters). This project is a **self-contained Java Swing desktop
+application with no network listener or HTTP endpoint**, so there is nothing for a DAST proxy to scan —
+running one would produce no meaningful signal. The equivalent assurance for this architecture comes
+from the SAST + SCA + secret-scanning toolchain above. If a web or service layer were added, ZAP (and
+API fuzzing) would be added to the pipeline at that point.
+
 ## Reporting a vulnerability
 
 If you discover a security issue in this project, please report it privately rather than opening a

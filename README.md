@@ -1,6 +1,7 @@
 # Java Point-of-Sale System
 
 [![CI](https://github.com/MILTONADINA/POS/actions/workflows/ci.yml/badge.svg)](https://github.com/MILTONADINA/POS/actions/workflows/ci.yml)
+[![Security](https://github.com/MILTONADINA/POS/actions/workflows/security.yml/badge.svg)](https://github.com/MILTONADINA/POS/actions/workflows/security.yml)
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Build](https://img.shields.io/badge/build-Maven-blue)](https://maven.apache.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -15,6 +16,13 @@ disciplined engineering practices rather than a production payment system.
 
 > **Educational / demo project.** All bundled data is synthetic and the application must not be used
 > to process real payment-card data. See [SECURITY.md](SECURITY.md).
+
+## Preview
+
+![Point of Sale — ringing up a sale](docs/preview.png)
+
+*Ringing up a sale: scanned line items with a live subtotal/tax/total, taxable toggle, multi-tender
+payments, and per-cashier register sessions. See also the [login screen](docs/preview-login.png).*
 
 ## Highlights
 
@@ -168,8 +176,13 @@ POS/
 
 Passwords are salted PBKDF2-HMAC-SHA256 hashes verified in constant time, and credit-card PANs are
 masked to the last four digits and never written to disk. The bundled data is entirely synthetic, and
-this project is an educational demo that must not handle real cardholder data. Full details — and how
-to report a vulnerability — are in [SECURITY.md](SECURITY.md).
+this project is an educational demo that must not handle real cardholder data.
+
+Security is verified empirically, not assumed: a dedicated [security workflow](.github/workflows/security.yml)
+runs **CodeQL**, **Semgrep**, **Trivy** + **OWASP Dependency-Check**, **gitleaks**, and **find-sec-bugs**
+(also a `mvn verify` gate) on every push, with **Dependabot** watching dependencies — currently a clean,
+zero-finding pass. Full details, the threat model, and how to report a vulnerability are in
+[SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -41,7 +41,7 @@ public class POSLogin extends JPanel {
         add(lblCashier);
 
         JLabel lblStartingCash = new JLabel("Starting Cash:");
-        lblStartingCash.setBounds(246, 242, 82, 16);
+        lblStartingCash.setBounds(246, 242, 120, 16);
         add(lblStartingCash);
 
         JLabel lblPassword = new JLabel("Password:");
