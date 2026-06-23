@@ -3,8 +3,9 @@ package POSPD;
 import java.math.BigDecimal;
 
 /**
- * A check payment. Bank account details are sensitive: {@link #toString()} masks the account number
- * to its last four digits.
+ * A check payment. Bank account details are sensitive: both display ({@link #toString()}) and
+ * persistence use {@link #getMaskedAccountNumber()} so only the last four digits are ever exposed
+ * or written to disk.
  */
 public class Check extends AuthorizedPayment {
 
@@ -53,6 +54,14 @@ public class Check extends AuthorizedPayment {
 
     public String getAccountNumber() {
         return this.accountNumber;
+    }
+
+    /**
+     * @return the account number with all but the last four digits masked (used for display and
+     *     persistence so the full number is never exposed)
+     */
+    public String getMaskedAccountNumber() {
+        return Credit.maskPan(accountNumber);
     }
 
     public void setAccountNumber(String accountNumber) {

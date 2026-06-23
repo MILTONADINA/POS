@@ -91,6 +91,9 @@ public final class PasswordHasher {
         } catch (IllegalArgumentException e) {
             return false; // malformed stored hash
         }
+        if (iterations <= 0 || salt.length == 0 || expected.length == 0) {
+            return false; // out-of-range parameters would otherwise throw inside PBKDF2
+        }
         byte[] actual = pbkdf2(password.toCharArray(), salt, iterations, expected.length * 8);
         return MessageDigest.isEqual(actual, expected);
     }

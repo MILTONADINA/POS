@@ -38,12 +38,13 @@ import java.util.logging.Logger;
  * PromoPrice} records (so items with zero, one, or many UPCs and prices all round-trip), persists
  * session timestamps, encodes the tax-free flag canonically, and stores only a masked card number.
  *
- * <p>Fields are encoded with RFC-4180 quoting, so values containing commas, quotes, or newlines
- * round-trip faithfully. Parsing is defensive: each line is validated for its expected field count
- * and a malformed line (or a record referencing an unknown item or tax category) is logged and
- * skipped rather than aborting the whole load. Reads prefer the configured data file and fall back
- * to the bundled classpath seed; writes always target the configured data file (never the source
- * tree), creating parent directories as needed.
+ * <p>Fields are encoded with RFC-4180 quoting, so values containing commas or quotes round-trip
+ * faithfully. Records are single-line: any embedded newline in a field is normalized to a space on
+ * write (no input surface in this application produces one). Parsing is defensive: each line is
+ * validated for its expected field count and a malformed line (or a record referencing an unknown
+ * item or tax category) is logged and skipped rather than aborting the whole load. Reads prefer the
+ * configured data file and fall back to the bundled classpath seed; writes always target the
+ * configured data file (never the source tree), creating parent directories as needed.
  */
 public class CsvStoreRepository implements StoreRepository {
 
@@ -194,6 +195,9 @@ public class CsvStoreRepository implements StoreRepository {
                     case SALE:
                         require(f, 2, lineNo);
                         currentSale = new Sale(f[1]);
+                        if (f.length >= 3 && !f[2].isBlank()) {
+                            currentSale.setDate(LocalDateTime.parse(f[2], TIMESTAMP));
+                        }
                         requireSession(currentSession, lineNo).addSale(currentSale);
                         break;
                     case SALE_LINE_ITEM:
@@ -342,7 +346,11 @@ public class CsvStoreRepository implements StoreRepository {
                             start,
                             end));
             for (Sale sale : s.getSales()) {
-                writer.println(row(SALE, String.valueOf(sale.getTaxFree())));
+                writer.println(
+                        row(
+                                SALE,
+                                String.valueOf(sale.getTaxFree()),
+                                sale.getDate().format(TIMESTAMP)));
                 for (SaleLineItem sli : sale.getSaleLineItems()) {
                     writer.println(
                             row(
@@ -381,7 +389,7 @@ public class CsvStoreRepository implements StoreRepository {
                             c.getAmount().toString(),
                             c.getAmtTendered().toString(),
                             c.getRoutingNumber(),
-                            c.getAccountNumber(),
+                            c.getMaskedAccountNumber(),
                             c.getCheckNumber()));
         }
     }
@@ -400,13 +408,13 @@ public class CsvStoreRepository implements StoreRepository {
         return sb.toString();
     }
 
-    /** RFC 4180 field encoding: wrap in quotes (doubling embedded quotes) when needed. */
+    /**
+     * RFC 4180 field encoding. Records are single physical lines, so any embedded newline is first
+     * normalized to a space; then commas and quotes are quoted/escaped.
+     */
     private static String encode(String field) {
-        String value = field == null ? "" : field;
-        if (value.indexOf(',') >= 0
-                || value.indexOf('"') >= 0
-                || value.indexOf('\n') >= 0
-                || value.indexOf('\r') >= 0) {
+        String value = field == null ? "" : field.replace('\r', ' ').replace('\n', ' ');
+        if (value.indexOf(',') >= 0 || value.indexOf('"') >= 0) {
             return '"' + value.replace("\"", "\"\"") + '"';
         }
         return value;

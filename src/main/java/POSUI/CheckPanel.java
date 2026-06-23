@@ -88,6 +88,14 @@ public class CheckPanel extends JPanel {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
+                        if (tendered.signum() <= 0 || tendered.scale() > 2) {
+                            JOptionPane.showMessageDialog(
+                                    thisPanel,
+                                    "Enter a positive amount with at most two decimal places.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         check.setAmtTendered(tendered);
                         check.setAmount(sale.calcAmount(tendered));
                         check.setRoutingNumber(textField_1.getText());

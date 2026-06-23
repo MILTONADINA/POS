@@ -48,6 +48,15 @@ public class Sale {
         return this.date;
     }
 
+    /**
+     * Sets the sale date (used by the persistence layer to restore the original timestamp).
+     *
+     * @param date the sale date
+     */
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
     public boolean getTaxFree() {
         return this.taxFree;
     }
@@ -163,6 +172,9 @@ public class Sale {
             remaining = BigDecimal.ZERO; // already overpaid: nothing left to apply
         }
         BigDecimal result = remaining.compareTo(amtTendered) > 0 ? amtTendered : remaining;
+        if (result.signum() < 0) {
+            result = BigDecimal.ZERO; // never apply a negative amount (defends against bad input)
+        }
         return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
     }
 

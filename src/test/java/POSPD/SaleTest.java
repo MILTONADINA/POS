@@ -105,6 +105,13 @@ class SaleTest {
             sale.addPayment(new Cash("1.55", "5.00")); // tender exceeds the total
             assertEquals(0, BigDecimal.ZERO.compareTo(sale.calcAmount(new BigDecimal("5.00"))));
         }
+
+        @Test
+        @DisplayName("calcAmount never returns a negative applied amount for a negative tender")
+        void calcAmountNeverNegativeForNegativeTender() {
+            Sale sale = taxableSale(); // total 1.55, no payments yet
+            assertEquals(0, BigDecimal.ZERO.compareTo(sale.calcAmount(new BigDecimal("-5.00"))));
+        }
     }
 
     @Test

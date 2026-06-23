@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import POSPD.Cash;
 import POSPD.Cashier;
+import POSPD.Check;
 import POSPD.Credit;
 import POSPD.Item;
 import POSPD.Payment;
@@ -37,6 +38,8 @@ class PersistenceRoundTripTest {
 
     private static final LocalDateTime START = LocalDateTime.of(2024, 9, 15, 8, 0, 0);
     private static final LocalDateTime END = LocalDateTime.of(2024, 9, 15, 16, 0, 0);
+    private static final LocalDateTime SALE1_DATE = LocalDateTime.of(2024, 9, 15, 8, 5, 0);
+    private static final LocalDateTime SALE2_DATE = LocalDateTime.of(2024, 9, 15, 9, 10, 0);
 
     private Store buildStore() {
         Store store = new Store("David's Quick Mart", "");
@@ -76,16 +79,21 @@ class PersistenceRoundTripTest {
         store.addSession(session);
 
         Sale taxFree = new Sale("true");
+        taxFree.setDate(SALE1_DATE);
         new SaleLineItem(taxFree, sandwich, 1);
         taxFree.addPayment(new Cash("2.29", "3.00"));
         session.addSale(taxFree);
 
         Sale taxable = new Sale("false");
+        taxable.setDate(SALE2_DATE);
         new SaleLineItem(taxable, sandwich, 2);
         Credit credit = new Credit("VISA", "4111111111111111", "1/1/2030");
         credit.setAmount("4.90");
         credit.setAmtTendered("4.90");
         taxable.addPayment(credit);
+        Check check = new Check("2.50", "2.50", "987654321", "1001");
+        check.setRoutingNumber("123456789");
+        taxable.addPayment(check);
         session.addSale(taxable);
 
         return store;
@@ -134,6 +142,15 @@ class PersistenceRoundTripTest {
         Payment p = session.getSales().get(1).getPayments().get(0);
         assertTrue(p instanceof Credit);
         assertEquals("************1111", ((Credit) p).getMaskedAcctNumber());
+
+        // Sale dates round-trip (no longer revert to load-time "now").
+        assertEquals(SALE1_DATE, session.getSales().get(0).getDate());
+        assertEquals(SALE2_DATE, session.getSales().get(1).getDate());
+
+        // Check bank account is masked at rest.
+        Payment checkPayment = session.getSales().get(1).getPayments().get(1);
+        assertTrue(checkPayment instanceof Check);
+        assertEquals("*****4321", ((Check) checkPayment).getAccountNumber());
     }
 
     @Test
@@ -144,6 +161,8 @@ class PersistenceRoundTripTest {
         String contents = Files.readString(file);
         assertFalse(contents.contains("4111111111111111"), "raw PAN must not be persisted");
         assertTrue(contents.contains("************1111"), "masked PAN should be persisted");
+        assertFalse(contents.contains("987654321"), "raw check account must not be persisted");
+        assertTrue(contents.contains("*****4321"), "masked check account should be persisted");
     }
 
     @Test

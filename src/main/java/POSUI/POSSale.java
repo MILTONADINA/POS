@@ -13,6 +13,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -210,10 +211,20 @@ public class POSSale extends JPanel {
         btnCompleteSale.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
+                        try {
+                            // Attach the sale to the session and persist it through the service.
+                            storeService.completeSale(session, sale);
+                        } catch (POSDM.StorePersistenceException ex) {
+                            JOptionPane.showMessageDialog(
+                                    currentPanel,
+                                    "The sale was NOT saved: " + ex.getMessage(),
+                                    "Save failed",
+                                    JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        // Update the drawer only after a successful save so it cannot drift.
                         session.getRegister().getCashDrawer().addCash(sale.getTotalPayments());
                         session.getRegister().getCashDrawer().removeCash(sale.calcChange());
-                        // Attach the sale to the session and persist it through the service.
-                        storeService.completeSale(session, sale);
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()
@@ -269,8 +280,16 @@ public class POSSale extends JPanel {
         btnEndSession.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        // The session was already registered at login; just end and persist it.
-                        storeService.endSession(session);
+                        try {
+                            // The session was already registered at login; just end and persist it.
+                            storeService.endSession(session);
+                        } catch (POSDM.StorePersistenceException ex) {
+                            JOptionPane.showMessageDialog(
+                                    currentPanel,
+                                    "The session end could not be saved: " + ex.getMessage(),
+                                    "Save failed",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()

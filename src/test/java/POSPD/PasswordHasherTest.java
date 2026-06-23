@@ -49,4 +49,14 @@ class PasswordHasherTest {
         assertTrue(PasswordHasher.needsRehash(null));
         assertFalse(PasswordHasher.needsRehash(PasswordHasher.hash("pw12345")));
     }
+
+    @Test
+    @DisplayName("verify returns false (never throws) for malformed PBKDF2 parameters")
+    void rejectsMalformedParameters() {
+        // Correct prefix and field count, but out-of-range parameters that would otherwise throw
+        // inside PBKDF2 (empty salt, zero iterations, negative iterations).
+        assertFalse(PasswordHasher.verify("pw12345", "pbkdf2_sha256$600000$$ZGlnZXN0"));
+        assertFalse(PasswordHasher.verify("pw12345", "pbkdf2_sha256$0$c2FsdA$ZGlnZXN0"));
+        assertFalse(PasswordHasher.verify("pw12345", "pbkdf2_sha256$-5$c2FsdA$ZGlnZXN0"));
+    }
 }

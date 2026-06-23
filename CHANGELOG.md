@@ -16,8 +16,13 @@ layered application.
   with rehash detection.
 - **Masked credit-card PANs** to the last four digits for display and storage; the full PAN is never
   written to disk.
+- Masked the **check bank-account number** at rest as well, so no full financial account identifier is
+  ever persisted.
 - Confirmed all bundled seed data is **synthetic** (non-issuable SSNs, fictional `555` phone numbers,
-  a masked demo card).
+  a masked demo card and check account).
+- Added an **empirically-verified security pipeline** (`.github/workflows/security.yml`): CodeQL,
+  Semgrep, Trivy, gitleaks, advisory OWASP Dependency-Check, plus **find-sec-bugs** in the `mvn verify`
+  gate and **Dependabot** — currently a zero-finding pass.
 
 ### Fixed / correctness
 - Corrected **date-based price selection** so promotional prices apply only within their window and
@@ -41,11 +46,13 @@ layered application.
 
 ### Build
 - Adopted **Maven** with the LGoodDatePicker dependency resolved from **Maven Central** (no vendored
-  jar), Java 17 compilation, **JaCoCo** coverage reporting, and a **Maven Shade** runnable jar.
-- Added a **GitHub Actions CI** workflow that runs `mvn -B verify` on every push and pull request.
+  jar), Java 17 compilation, **JaCoCo** coverage reporting + gate, and a **Maven Shade** runnable jar.
+- Enforced **Spotless** (Google Java Format) and **SpotBugs + find-sec-bugs** as build gates.
+- Added **GitHub Actions** CI (JDK 17 verify + JDK 21 compatibility) and a dedicated security workflow,
+  both running on every push and pull request.
 
 ### Testing
-- Added a real **JUnit 5 (Jupiter)** suite (50 tests) covering sale money math, price/promo selection,
+- Added a real **JUnit 5 (Jupiter)** suite (55 tests) covering sale money math, price/promo selection,
   tax-rate selection, collection contracts, payment polymorphism and PAN masking, PBKDF2 hashing, the
   service-layer login flow against an in-memory repository, and a lossless persistence round-trip.
 
