@@ -31,7 +31,7 @@
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
         <google.java.format.version>1.22.0</google.java.format.version>
         <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
-        <findsecbugs.version>1.13.0</findsecbugs.version>
+        <findsecbugs.version>1.14.0</findsecbugs.version>
 
         <main.class>POSUI.Start</main.class>
     </properties>
