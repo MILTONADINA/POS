@@ -263,7 +263,13 @@ public class CsvStoreRepository implements StoreRepository {
                                 "Skipping unknown record type '" + f[0] + "' at line " + lineNo);
                 }
             } catch (RuntimeException e) {
-                LOG.log(Level.WARNING, "Skipping malformed line " + lineNo + ": " + line, e);
+                // Log only the line number, record tag, and exception — never the raw line, which
+                // could contain PII/credential columns (e.g. a cashier's SSN or password hash).
+                String tag = f.length > 0 ? f[0] : "?";
+                LOG.log(
+                        Level.WARNING,
+                        "Skipping malformed line " + lineNo + " (record '" + tag + "')",
+                        e);
             }
         }
     }
