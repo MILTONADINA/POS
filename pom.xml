@@ -26,7 +26,7 @@
         <compiler.plugin.version>3.13.0</compiler.plugin.version>
         <surefire.plugin.version>3.2.5</surefire.plugin.version>
         <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
-        <shade.plugin.version>3.5.3</shade.plugin.version>
+        <shade.plugin.version>3.6.2</shade.plugin.version>
         <exec.plugin.version>3.1.0</exec.plugin.version>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
         <google.java.format.version>1.22.0</google.java.format.version>
