@@ -14,6 +14,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -88,10 +89,25 @@ public class ItemEditPanel extends JPanel {
         btnSave.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        item.setNumber(textField.getText());
+                        String number = textField.getText().trim();
+                        if (number.isEmpty()
+                                || (!number.equals(item.getNumber())
+                                        && store.findItemForNumber(number) != null)) {
+                            JOptionPane.showMessageDialog(
+                                    ItemEditPanel.this,
+                                    "Enter a unique, non-blank item number.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        // Re-key: remove under the old number before changing it, then (re)insert.
+                        if (!isAdd) {
+                            store.removeItem(item);
+                        }
+                        item.setNumber(number);
                         item.setDescription(textField_1.getText());
                         item.setTaxCategory((TaxCategory) comboBox.getSelectedItem());
-                        if (isAdd) store.addItem(item);
+                        store.addItem(item);
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

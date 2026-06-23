@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -41,10 +42,23 @@ public class RegisterEditPanel extends JPanel {
         btnSave.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        register.setNumber(textField.getText());
-
-                        if (isAdd) store.addRegister(register);
-
+                        String number = textField.getText().trim();
+                        if (number.isEmpty()
+                                || (!number.equals(register.getNumber())
+                                        && store.getRegisters().get(number) != null)) {
+                            JOptionPane.showMessageDialog(
+                                    RegisterEditPanel.this,
+                                    "Enter a unique, non-blank register number.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        // Re-key: remove under the old number before changing it, then (re)insert.
+                        if (!isAdd) {
+                            store.removeRegister(register);
+                        }
+                        register.setNumber(number);
+                        store.addRegister(register);
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

@@ -23,9 +23,7 @@ public class POSPayment extends JPanel {
 
     JButton btnCompletePayment;
 
-    CashPanel cashPanel;
-    CheckPanel checkPanel;
-    CreditPanel creditPanel;
+    private JPanel activeTenderPanel;
 
     /** Create the panel. */
     public POSPayment(
@@ -79,20 +77,14 @@ public class POSPayment extends JPanel {
                 new ActionListener() // AC
                 {
                     public void actionPerformed(ActionEvent e) {
-                        cashPanel =
+                        showTenderPanel(
                                 new CashPanel(
                                         currentFrame,
                                         thisPanel,
                                         storeService.getStore(),
                                         session,
                                         sale,
-                                        new Cash());
-                        cashPanel.setBounds(372, 88, 400, 300);
-                        add(cashPanel);
-                        if (checkPanel != null) remove(checkPanel);
-                        else if (creditPanel != null) remove(creditPanel);
-                        revalidate();
-                        repaint();
+                                        new Cash()));
                     }
                 });
         btnCash.setBounds(132, 247, 97, 25);
@@ -102,20 +94,14 @@ public class POSPayment extends JPanel {
         btnCheck.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        checkPanel =
+                        showTenderPanel(
                                 new CheckPanel(
                                         currentFrame,
                                         thisPanel,
                                         storeService.getStore(),
                                         session,
                                         sale,
-                                        new Check());
-                        checkPanel.setBounds(372, 88, 400, 300);
-                        add(checkPanel);
-                        if (cashPanel != null) remove(cashPanel);
-                        else if (creditPanel != null) remove(creditPanel);
-                        revalidate();
-                        repaint();
+                                        new Check()));
                     }
                 });
         btnCheck.setBounds(132, 303, 97, 25);
@@ -125,20 +111,14 @@ public class POSPayment extends JPanel {
         btnCredit.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        creditPanel =
+                        showTenderPanel(
                                 new CreditPanel(
                                         currentFrame,
                                         thisPanel,
                                         storeService.getStore(),
                                         session,
                                         sale,
-                                        new Credit());
-                        creditPanel.setBounds(372, 88, 400, 300);
-                        add(creditPanel);
-                        if (cashPanel != null) remove(cashPanel);
-                        else if (checkPanel != null) remove(checkPanel);
-                        revalidate();
-                        repaint();
+                                        new Credit()));
                     }
                 });
         btnCredit.setBounds(132, 363, 97, 25);
@@ -156,5 +136,17 @@ public class POSPayment extends JPanel {
         btnCompletePayment.setBounds(505, 401, 152, 25);
         add(btnCompletePayment);
         btnCompletePayment.setEnabled(false);
+    }
+
+    /** Shows a single tender sub-panel, replacing any previously-shown one (no overlap). */
+    private void showTenderPanel(JPanel panel) {
+        if (activeTenderPanel != null) {
+            remove(activeTenderPanel);
+        }
+        panel.setBounds(372, 88, 400, 300);
+        add(panel);
+        activeTenderPanel = panel;
+        revalidate();
+        repaint();
     }
 }

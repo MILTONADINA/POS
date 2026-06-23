@@ -236,11 +236,15 @@ public class CsvStoreRepository implements StoreRepository {
                         break;
                     case SALE:
                         require(f, 2, lineNo);
-                        currentSale = new Sale(f[1]);
+                        Sale sale = new Sale(f[1]);
                         if (f.length >= 3 && !f[2].isBlank()) {
-                            currentSale.setDate(LocalDateTime.parse(f[2], TIMESTAMP));
+                            sale.setDate(LocalDateTime.parse(f[2], TIMESTAMP));
                         }
-                        requireSession(currentSession, lineNo).addSale(currentSale);
+                        requireSession(currentSession, lineNo).addSale(sale);
+                        // Only adopt the sale as "current" once it is safely attached to a session,
+                        // so a bad date or missing session can't orphan the following lines onto
+                        // it.
+                        currentSale = sale;
                         break;
                     case SALE_LINE_ITEM:
                         require(f, 3, lineNo);

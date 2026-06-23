@@ -308,6 +308,34 @@ class PersistenceRoundTripTest {
     }
 
     @Test
+    @DisplayName("a SALE line with a bad date is skipped without orphaning its following lines")
+    void orphanSaleLinesNotAttached(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("store.csv");
+        Files.writeString(
+                file,
+                String.join(
+                                "\n",
+                                "Store,Mart",
+                                "TaxCategory,Food,0.07,1/1/24",
+                                "Item,1,Bread,Food",
+                                "Price,1,2.00,1/1/24",
+                                "Cashier,1,Amy,000-00-0001,1 St,Town,ST,00000,555,x",
+                                "Register,1",
+                                "Session,1,1,2024-01-01T08:00:00,2024-01-01T16:00:00",
+                                "Sale,false,NOT-A-DATE", // bad timestamp -> sale line skipped
+                                "SaleLineItem,1,3", // must NOT attach to the skipped sale
+                                "Payment,Cash,3.00,3.00",
+                                "Sale,false,2024-01-01T09:00:00", // the valid sale
+                                "SaleLineItem,1,1")
+                        + "\n");
+        Store loaded = new CsvStoreRepository(file).load();
+        assertEquals(1, loaded.getSessions().size());
+        // Only the valid sale (with its single line) survives; the orphan + its lines are dropped.
+        assertEquals(1, loaded.getSessions().get(0).getSales().size());
+        assertEquals(1, loaded.getSessions().get(0).getSales().get(0).getSaleLineItems().size());
+    }
+
+    @Test
     @DisplayName("the bundled seed loads from the classpath when no data file exists")
     void seedLoadsFromClasspath(@TempDir Path dir) {
         // Point at a non-existent file so the repository falls back to the bundled seed resource.

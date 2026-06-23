@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -71,8 +72,24 @@ public class TaxCategoryEditPanel extends JPanel {
         btnSave.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        taxCategory.setCategory(textField.getText());
-                        if (isAdd) store.addTaxCategory(taxCategory);
+                        String newName = textField.getText().trim();
+                        if (newName.isEmpty()
+                                || (!newName.equals(taxCategory.getCategory())
+                                        && store.getTaxCategory(newName) != null)) {
+                            JOptionPane.showMessageDialog(
+                                    TaxCategoryEditPanel.this,
+                                    "Enter a unique, non-blank category name.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        // Remove under the old key before renaming, then (re)insert under the new
+                        // key, so the Store's name-keyed map never holds a stale entry.
+                        if (!isAdd) {
+                            store.removeTaxCategory(taxCategory);
+                        }
+                        taxCategory.setCategory(newName);
+                        store.addTaxCategory(taxCategory);
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

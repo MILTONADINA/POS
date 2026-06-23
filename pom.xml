@@ -122,6 +122,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <!-- Report the same scope the gate enforces: the Swing UI is not
+                                 unit-tested, so excluding it keeps the headline meaningful. -->
+                            <excludes>
+                                <exclude>POSUI/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>check</id>

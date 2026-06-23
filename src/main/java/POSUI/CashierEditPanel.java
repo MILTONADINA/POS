@@ -61,17 +61,22 @@ public class CashierEditPanel extends JPanel {
                         cashier.getPerson().setState(textField_5.getText());
                         cashier.getPerson().setZip(textField_6.getText());
                         cashier.getPerson().setPhone(textField_2.getText());
+                        // Re-key in the store's number-keyed map: remove under the old number
+                        // before
+                        // changing it, then (re)insert under the new number for both add and edit.
+                        if (!isAdd) {
+                            store.removeCashier(cashier);
+                        }
                         cashier.setNumber(number);
                         // Only (re)hash when a new password was entered; a blank field keeps the
                         // current one.
                         if (!password.isEmpty()) {
                             cashier.setPassword(password);
                         }
-
                         if (isAdd) {
                             cashier.getPerson().setCashier(cashier);
-                            store.addCashier(cashier);
                         }
+                        store.addCashier(cashier);
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }
