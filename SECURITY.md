@@ -41,6 +41,12 @@ The project deliberately demonstrates several defensive practices in its domain 
 - Runtime data is written to a configurable path (`pos.data.file`, defaulting to
   `~/.pos/StoreData_v2024FA.csv`) and never to the source tree; the bundled seed is read from the
   classpath only as a read-only fallback.
+- Writes are **atomic** (write to a temp file, then atomic rename), so a crash or full disk mid-save
+  can never truncate the live data file; a file that is present but unparseable is **rejected**
+  rather than silently loaded as empty (which a later save would have overwritten).
+- Free-text fields are neutralized against **CSV/spreadsheet formula injection** (CWE-1236) on write
+  — a value beginning with `=`, `+`, `-`, `@`, or a tab is sentinel-escaped — and the sentinel is
+  stripped on read so values round-trip unchanged.
 
 ### Known, intentional limitations
 - Credit-card "authorization" is a **simulation** for demo purposes, not a real payment-gateway

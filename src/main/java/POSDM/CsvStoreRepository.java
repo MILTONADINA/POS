@@ -22,8 +22,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
@@ -100,28 +102,68 @@ public class CsvStoreRepository implements StoreRepository {
     @Override
     public Store load() {
         Store store = new Store();
+        boolean fromDataFile = Files.exists(dataFile);
         try (BufferedReader reader = openForRead()) {
             if (reader == null) {
                 LOG.info("No store data file or seed resource found; starting with an empty store");
                 return store;
             }
             parse(reader, store);
+            if (fromDataFile && isEffectivelyEmpty(store) && Files.size(dataFile) > 0) {
+                // A present, non-empty file that yields no usable records is corrupt. Refuse to
+                // return a silently-empty store, which a later save would overwrite irrecoverably.
+                throw new StorePersistenceException(
+                        "Store data file is present but could not be parsed (possibly corrupt): "
+                                + dataFile);
+            }
         } catch (IOException e) {
             throw new StorePersistenceException("Failed to read store data from " + dataFile, e);
         }
         return store;
     }
 
+    private static boolean isEffectivelyEmpty(Store store) {
+        return store.getName().isEmpty()
+                && store.getItems().isEmpty()
+                && store.getCashiers().isEmpty()
+                && store.getRegisters().isEmpty()
+                && store.getTaxCategories().isEmpty()
+                && store.getSessions().isEmpty();
+    }
+
     @Override
     public void save(Store store) {
+        Path target = dataFile.toAbsolutePath();
+        Path parent = target.getParent();
+        if (parent == null) {
+            throw new StorePersistenceException(
+                    "Cannot determine a directory for data file " + dataFile);
+        }
         try {
-            Path parent = dataFile.toAbsolutePath().getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-            try (PrintWriter writer =
-                    new PrintWriter(Files.newBufferedWriter(dataFile, StandardCharsets.UTF_8))) {
-                write(store, writer);
+            Files.createDirectories(parent);
+            // Write to a sibling temp file and atomically swap it in, so a crash or full disk
+            // mid-write can never truncate or corrupt the live data file.
+            Path tmp = Files.createTempFile(parent, "store-", ".csv.tmp");
+            try {
+                try (PrintWriter writer =
+                        new PrintWriter(Files.newBufferedWriter(tmp, StandardCharsets.UTF_8))) {
+                    write(store, writer);
+                    writer.flush();
+                    if (writer.checkError()) {
+                        throw new IOException("Error while writing store data");
+                    }
+                }
+                try {
+                    Files.move(
+                            tmp,
+                            target,
+                            StandardCopyOption.ATOMIC_MOVE,
+                            StandardCopyOption.REPLACE_EXISTING);
+                } catch (AtomicMoveNotSupportedException e) {
+                    Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                Files.deleteIfExists(tmp);
             }
         } catch (IOException e) {
             throw new StorePersistenceException("Failed to write store data to " + dataFile, e);
@@ -414,8 +456,27 @@ public class CsvStoreRepository implements StoreRepository {
      */
     private static String encode(String field) {
         String value = field == null ? "" : field.replace('\r', ' ').replace('\n', ' ');
+        // Neutralize spreadsheet formula/DDE injection (CWE-1236): a field beginning with a formula
+        // trigger gets a leading apostrophe sentinel so it can never execute if the CSV is opened
+        // in
+        // a spreadsheet. The sentinel is stripped again on read so the value round-trips unchanged.
+        if (!value.isEmpty() && isFormulaTrigger(value.charAt(0))) {
+            value = "'" + value;
+        }
         if (value.indexOf(',') >= 0 || value.indexOf('"') >= 0) {
             return '"' + value.replace("\"", "\"\"") + '"';
+        }
+        return value;
+    }
+
+    private static boolean isFormulaTrigger(char c) {
+        return c == '=' || c == '+' || c == '-' || c == '@' || c == '\t';
+    }
+
+    /** Reverses the formula-injection sentinel added by {@link #encode(String)}. */
+    private static String stripSentinel(String value) {
+        if (value.length() >= 2 && value.charAt(0) == '\'' && isFormulaTrigger(value.charAt(1))) {
+            return value.substring(1);
         }
         return value;
     }
@@ -441,13 +502,13 @@ public class CsvStoreRepository implements StoreRepository {
             } else if (ch == '"') {
                 inQuotes = true;
             } else if (ch == ',') {
-                fields.add(current.toString());
+                fields.add(stripSentinel(current.toString()));
                 current.setLength(0);
             } else {
                 current.append(ch);
             }
         }
-        fields.add(current.toString());
+        fields.add(stripSentinel(current.toString()));
         return fields.toArray(new String[0]);
     }
 

@@ -6,7 +6,7 @@ build green.
 
 ## Prerequisites
 
-- **JDK 17 or newer**
+- **JDK 17** to build (the Spotless format gate is validated on JDK 17; the jar runs on JDK 17+)
 - **Maven**
 
 ## Build and test

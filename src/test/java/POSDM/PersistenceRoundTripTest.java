@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import POSPD.Cash;
@@ -207,6 +208,38 @@ class PersistenceRoundTripTest {
                         .compareTo(
                                 loaded.findItemForNumber("9")
                                         .getTaxRate(LocalDate.of(2024, 1, 1))));
+    }
+
+    @Test
+    @DisplayName("a formula-like field is neutralized on disk but round-trips unchanged")
+    void formulaInjectionNeutralized(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("store.csv");
+        Store store = new Store("Mart", "");
+        TaxCategory food = new TaxCategory("Food");
+        food.addTaxRate(new TaxRate(LocalDate.of(2000, 1, 1), new BigDecimal("0.07")));
+        store.addTaxCategory(food);
+        Item item = new Item("1", "=1+1"); // a spreadsheet formula trigger as free text
+        item.setTaxCategory(food);
+        item.addPrice(new Price("1.00", "1/1/2000"));
+        store.addItem(item);
+
+        new CsvStoreRepository(file).save(store);
+        String contents = Files.readString(file);
+        assertTrue(
+                contents.contains("'=1+1"),
+                "formula trigger should be neutralized with a sentinel");
+
+        Store loaded = new CsvStoreRepository(file).load();
+        assertEquals("=1+1", loaded.findItemForNumber("1").getDescription());
+    }
+
+    @Test
+    @DisplayName(
+            "a present but unparseable data file is rejected, not loaded as a silent empty store")
+    void corruptFileRejected(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("store.csv");
+        Files.writeString(file, "  garbage binary\nnot a known record type\n");
+        assertThrows(StorePersistenceException.class, () -> new CsvStoreRepository(file).load());
     }
 
     @Test

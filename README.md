@@ -85,7 +85,8 @@ storage technology.
 
 ## Build & Run
 
-Requires **JDK 17 or newer** and **Maven**.
+Requires **Maven** and **JDK 17** to build. The full quality gate (Spotless's Google Java Format)
+is validated on JDK 17, which is what CI uses; the packaged jar then runs on **JDK 17 or newer**.
 
 ```bash
 # Compile, run the full test suite, generate the coverage report, and build a runnable jar
@@ -144,7 +145,7 @@ The suite is 55 tests built on **JUnit 5 (Jupiter)** and covers, among other thi
 - the service-layer login flow against an in-memory repository (no disk I/O); and
 - a lossless CSV persistence round-trip, including an assertion that the raw PAN never reaches disk.
 
-Coverage focuses on the testable layers: **POSDM ~87% line** and **POSPD ~60% line**. The Swing UI
+Coverage focuses on the testable layers: **POSDM ~92% line** and **POSPD ~60% line**. The Swing UI
 (`POSUI`) is exercised manually and is intentionally outside the unit-test scope.
 
 ## Project structure

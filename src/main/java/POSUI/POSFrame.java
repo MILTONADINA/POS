@@ -15,7 +15,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -33,14 +32,9 @@ public class POSFrame extends JFrame {
                         POSFrame frame = new POSFrame(storeService);
                         frame.setVisible(true);
                     } catch (RuntimeException e) {
-                        // Route through the same user-facing handling as the rest of the app rather
-                        // than letting the main window silently fail to a stderr stack trace.
-                        LOG.log(Level.SEVERE, "Failed to construct the main window", e);
-                        JOptionPane.showMessageDialog(
-                                null,
-                                "The application could not start: " + e.getMessage(),
-                                "Startup error",
-                                JOptionPane.ERROR_MESSAGE);
+                        // Route through the shared, headless-safe handler so a dialog failure here
+                        // can never re-enter the uncaught-exception handler.
+                        Start.reportFatal("Failed to construct the main window", e);
                     }
                 });
     }
