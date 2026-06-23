@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -43,13 +44,30 @@ public class UpcEditPanel extends JPanel {
         btnSave.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        upc.setUPC(textField.getText());
-
-                        if (isAdd) {
-                            upc.setItem(item);
-                            item.addUPC(upc);
-                            store.addUPC(upc);
+                        String code = textField.getText().trim();
+                        if (code.isEmpty()
+                                || (!code.equals(upc.getUPC())
+                                        && store.findItemForUPC(code) != null)) {
+                            JOptionPane.showMessageDialog(
+                                    UpcEditPanel.this,
+                                    "Enter a unique, non-blank UPC.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
                         }
+                        // Re-key in the code-keyed maps (Item.upcs and Store.upcs): remove under
+                        // the
+                        // old code before changing it, then (re)insert under the new code for both
+                        // add and edit — otherwise an edited code is filed under the stale key and
+                        // the register cannot resolve it until the next reload.
+                        if (!isAdd) {
+                            item.removeUPC(upc);
+                            store.removeUPC(upc);
+                        }
+                        upc.setUPC(code);
+                        upc.setItem(item);
+                        item.addUPC(upc);
+                        store.addUPC(upc);
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

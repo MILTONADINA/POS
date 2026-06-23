@@ -43,16 +43,30 @@ public final class PasswordHasher {
      * @throws IllegalArgumentException if {@code password} is null or empty
      */
     public static String hash(String password) {
+        return hash(password, DEFAULT_ITERATIONS);
+    }
+
+    /**
+     * Hashes a plaintext password at an explicit work factor. Package-private: production code uses
+     * the {@link #hash(String) default work factor}; this overload lets tests construct a
+     * lower-iteration hash that {@link #needsRehash(String)} flags for upgrade.
+     *
+     * @param password the plaintext password; must be non-null and non-empty
+     * @param iterations the PBKDF2 iteration count (work factor)
+     * @return the encoded PHC-style hash string
+     * @throws IllegalArgumentException if {@code password} is null or empty
+     */
+    static String hash(String password, int iterations) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password must not be null or empty");
         }
         byte[] salt = new byte[SALT_LENGTH_BYTES];
         SECURE_RANDOM.nextBytes(salt);
-        byte[] digest = pbkdf2(password.toCharArray(), salt, DEFAULT_ITERATIONS, KEY_LENGTH_BITS);
+        byte[] digest = pbkdf2(password.toCharArray(), salt, iterations, KEY_LENGTH_BITS);
         Base64.Encoder encoder = Base64.getEncoder().withoutPadding();
         return ALGORITHM_ID
                 + "$"
-                + DEFAULT_ITERATIONS
+                + iterations
                 + "$"
                 + encoder.encodeToString(salt)
                 + "$"

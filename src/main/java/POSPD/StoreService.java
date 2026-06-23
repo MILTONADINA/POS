@@ -60,6 +60,12 @@ public class StoreService {
         }
         Cashier cashier = store.findCashierForNumber(cashierId);
         if (cashier != null && cashier.isAuthorized(password)) {
+            // Now that we hold the verified plaintext, transparently re-hash a credential whose
+            // work
+            // factor is below the current standard, so stored hashes harden over time on login.
+            if (PasswordHasher.needsRehash(cashier.getPassword())) {
+                cashier.setPassword(password);
+            }
             Session session = new Session(cashier, register, store);
             store.addSession(session);
             saveStoreState();

@@ -59,4 +59,26 @@ class AuthenticationTest {
         Cashier cashier = new Cashier();
         assertThrows(IllegalArgumentException.class, () -> cashier.setPassword(""));
     }
+
+    @Test
+    @DisplayName("login transparently upgrades a password hash whose work factor is too low")
+    void loginUpgradesWeakHash() {
+        Store store = new Store("Mart", "");
+        Cashier cashier = new Cashier("1", new Person(), "demo1234");
+        // Seed a valid but under-work-factor hash (below the current standard).
+        cashier.setPasswordHash(PasswordHasher.hash("demo1234", 1000));
+        store.addCashier(cashier);
+        Register register = new Register("1");
+        store.addRegister(register);
+        assertTrue(
+                PasswordHasher.needsRehash(cashier.getPassword()), "precondition: needs upgrade");
+
+        StoreService service = new StoreService(store, new POSDM.InMemoryStoreRepository(store));
+        assertTrue(service.login("1", "demo1234", register).isPresent());
+
+        assertFalse(
+                PasswordHasher.needsRehash(cashier.getPassword()),
+                "hash should be upgraded to the current work factor on a successful login");
+        assertTrue(cashier.isAuthorized("demo1234"), "the upgraded hash still authenticates");
+    }
 }
