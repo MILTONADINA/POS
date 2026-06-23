@@ -311,17 +311,20 @@ public class CsvStoreRepository implements StoreRepository {
 
     private void parseTaxCategory(String[] f, int lineNo, Store store) {
         require(f, 4, lineNo);
-        // Build the rate first so a non-numeric rate (or bad date) throws BEFORE any store
-        // mutation,
-        // leaving no phantom empty category behind — consistent with the other branches' "construct
-        // fully, attach only on success" discipline.
-        TaxRate rate = new TaxRate(f[3], f[2]);
+        // A category created before its first rate is persisted with blank rate columns. Build the
+        // rate first (so a non-numeric rate/date throws BEFORE any store mutation — no phantom
+        // empty
+        // category) only when those columns are present; otherwise register a rate-less category.
+        boolean hasRate = !f[2].isBlank() && !f[3].isBlank();
+        TaxRate rate = hasRate ? new TaxRate(f[3], f[2]) : null;
         TaxCategory category = store.getTaxCategory(f[1]);
         if (category == null) {
             category = new TaxCategory(f[1]);
             store.addTaxCategory(category);
         }
-        category.addTaxRate(rate);
+        if (rate != null) {
+            category.addTaxRate(rate);
+        }
     }
 
     private Cashier cashierFrom(String[] f) {
@@ -370,13 +373,20 @@ public class CsvStoreRepository implements StoreRepository {
         writer.println(row(STORE, store.getName()));
 
         for (TaxCategory tc : store.getTaxCategories().values()) {
-            for (TaxRate tr : tc.getTaxRates()) {
-                writer.println(
-                        row(
-                                TAX_CATEGORY,
-                                tc.getCategory(),
-                                tr.getTaxRate().toString(),
-                                POSPD.DateUtils.format(tr.getEffectiveDate())));
+            if (tc.getTaxRates().isEmpty()) {
+                // Persist a rate-less category (one created before its first rate) with blank rate
+                // columns, symmetric with Item — otherwise the category, and any item assigned to
+                // it, would silently disappear on the next load.
+                writer.println(row(TAX_CATEGORY, tc.getCategory(), "", ""));
+            } else {
+                for (TaxRate tr : tc.getTaxRates()) {
+                    writer.println(
+                            row(
+                                    TAX_CATEGORY,
+                                    tc.getCategory(),
+                                    tr.getTaxRate().toString(),
+                                    POSPD.DateUtils.format(tr.getEffectiveDate())));
+                }
             }
         }
 

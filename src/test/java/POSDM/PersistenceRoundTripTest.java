@@ -366,6 +366,25 @@ class PersistenceRoundTripTest {
     }
 
     @Test
+    @DisplayName("a rate-less tax category and an item assigned to it both survive save and load")
+    void rateLessCategorySurvivesRoundTrip(@TempDir Path dir) {
+        Path file = dir.resolve("store.csv");
+        Store store = new Store("Mart", "");
+        TaxCategory noRates = new TaxCategory("NoRates"); // created before any rate was added
+        store.addTaxCategory(noRates);
+        Item item = new Item("1", "Thing");
+        item.setTaxCategory(noRates);
+        item.addPrice(new Price("1.00", "1/1/2020"));
+        store.addItem(item);
+
+        new CsvStoreRepository(file).save(store);
+        Store loaded = new CsvStoreRepository(file).load();
+        assertNotNull(loaded.getTaxCategories().get("NoRates"), "rate-less category must persist");
+        assertNotNull(loaded.findItemForNumber("1"), "item assigned to it must persist");
+        assertEquals("NoRates", loaded.findItemForNumber("1").getTaxCategory().getCategory());
+    }
+
+    @Test
     @DisplayName("the bundled seed loads from the classpath when no data file exists")
     void seedLoadsFromClasspath(@TempDir Path dir) {
         // Point at a non-existent file so the repository falls back to the bundled seed resource.
