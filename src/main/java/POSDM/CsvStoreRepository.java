@@ -103,23 +103,58 @@ public class CsvStoreRepository implements StoreRepository {
     public Store load() {
         Store store = new Store();
         boolean fromDataFile = Files.exists(dataFile);
+        boolean corrupt;
         try (BufferedReader reader = openForRead()) {
             if (reader == null) {
                 LOG.info("No store data file or seed resource found; starting with an empty store");
                 return store;
             }
             parse(reader, store);
-            if (fromDataFile && isEffectivelyEmpty(store) && Files.size(dataFile) > 0) {
-                // A present, non-empty file that yields no usable records is corrupt. Refuse to
-                // return a silently-empty store, which a later save would overwrite irrecoverably.
-                throw new StorePersistenceException(
-                        "Store data file is present but could not be parsed (possibly corrupt): "
-                                + dataFile);
-            }
+            // A present, non-empty file that yields no usable records is corrupt.
+            corrupt = fromDataFile && isEffectivelyEmpty(store) && Files.size(dataFile) > 0;
         } catch (IOException e) {
             throw new StorePersistenceException("Failed to read store data from " + dataFile, e);
         }
+        if (corrupt) {
+            // Refuse to return a silently-empty store (a later save would overwrite the file
+            // irrecoverably). The reader is now closed, so move the bad file aside — the next
+            // launch
+            // then starts cleanly from the seed without the user touching a hidden dotfile — and
+            // fail with actionable guidance rather than a bare path.
+            Path quarantined = quarantineCorruptFile();
+            String guidance =
+                    quarantined != null
+                            ? " It has been moved to "
+                                    + quarantined
+                                    + ", so the application will start fresh on the next launch. To"
+                                    + " restore older data, replace "
+                                    + dataFile
+                                    + " with a known-good copy."
+                            : " Rename or remove "
+                                    + dataFile
+                                    + " to start fresh, or restore a known-good backup.";
+            throw new StorePersistenceException(
+                    "Your saved data file could not be read and may be damaged." + guidance);
+        }
         return store;
+    }
+
+    /**
+     * Best-effort move of a corrupt data file to a unique {@code .corrupt-<timestamp>} sibling.
+     *
+     * @return the new path, or {@code null} if it could not be moved (logged)
+     */
+    private Path quarantineCorruptFile() {
+        try {
+            String stamp =
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            Path target = dataFile.resolveSibling(dataFile.getFileName() + ".corrupt-" + stamp);
+            Files.move(dataFile, target);
+            return target;
+        } catch (IOException | RuntimeException e) {
+            LOG.log(Level.WARNING, "Could not move aside the corrupt data file " + dataFile, e);
+            return null;
+        }
     }
 
     private static boolean isEffectivelyEmpty(Store store) {

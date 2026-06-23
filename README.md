@@ -119,6 +119,11 @@ java -Dpos.data.file=/path/to/store.csv -jar target/point-of-sale-1.0.0.jar
 Application logs are written to a rolling file at `~/.pos/logs/pos-N.log` (so diagnostics survive even
 when the app is launched by double-clicking the jar, with no console attached).
 
+**Recovering from a corrupt data file.** Rather than silently overwriting damaged data, the app refuses
+to start on an unreadable data file. It moves the bad file aside to `…/StoreData_v2024FA.csv.corrupt-<timestamp>`
+and reports where, then starts fresh from the bundled seed on the next launch. To restore older data,
+replace the data file with a known-good copy (e.g. a renamed `.corrupt-…` backup).
+
 ## Demo credentials
 
 At the login screen:
@@ -183,10 +188,10 @@ masked to the last four digits and never written to disk. The bundled data is en
 this project is an educational demo that must not handle real cardholder data.
 
 Security is verified empirically, not assumed: a dedicated [security workflow](.github/workflows/security.yml)
-runs **CodeQL**, **Semgrep**, **Trivy** + **OWASP Dependency-Check**, **gitleaks**, and **find-sec-bugs**
-(also a `mvn verify` gate) on every push, with **Dependabot** watching dependencies — currently a clean,
-zero-finding pass. Full details, the threat model, and how to report a vulnerability are in
-[SECURITY.md](SECURITY.md).
+runs **CodeQL**, **Semgrep**, **Trivy** + **OWASP Dependency-Check**, and **gitleaks** on every push,
+complemented by **find-sec-bugs** in the `mvn verify` build gate (CI) and **Dependabot** watching
+dependencies — currently a clean, zero-finding pass. Full details, the threat model, and how to report a
+vulnerability are in [SECURITY.md](SECURITY.md).
 
 ## License
 

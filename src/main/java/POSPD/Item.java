@@ -91,10 +91,12 @@ public class Item {
      * Adds a price to this item's price history.
      *
      * @param price the price to add
+     * @return {@code true} if it was added; {@code false} if an equal price (same effective date
+     *     and amount) is already present, in which case the set is unchanged
      */
-    public void addPrice(Price price) {
+    public boolean addPrice(Price price) {
         price.setItem(this);
-        prices.add(price);
+        return prices.add(price);
     }
 
     /**

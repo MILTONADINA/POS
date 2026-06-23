@@ -64,9 +64,11 @@ public class TaxCategory {
      * Adds a tax rate to this category.
      *
      * @param taxRate the rate to add
+     * @return {@code true} if it was added; {@code false} if an equal rate (same effective date and
+     *     rate) is already present, in which case the set is unchanged
      */
-    public void addTaxRate(TaxRate taxRate) {
-        taxRates.add(taxRate);
+    public boolean addTaxRate(TaxRate taxRate) {
+        return taxRates.add(taxRate);
     }
 
     /**

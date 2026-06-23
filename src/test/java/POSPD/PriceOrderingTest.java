@@ -1,7 +1,11 @@
 package POSPD;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -36,5 +40,22 @@ class PriceOrderingTest {
         item.addPrice(new Price("2.00", "1/1/24"));
         item.addPrice(new Price("2.00", "1/1/24"));
         assertEquals(1, item.getPrices().size());
+    }
+
+    @Test
+    @DisplayName("addPrice/addTaxRate report a duplicate key instead of silently dropping it")
+    void addReportsDuplicate() {
+        Item item = new Item("1", "Widget");
+        assertTrue(item.addPrice(new Price("2.00", "1/1/24")));
+        assertFalse(
+                item.addPrice(new Price("2.00", "1/1/24")), "equal price must report not-added");
+        assertEquals(1, item.getPrices().size());
+
+        TaxCategory food = new TaxCategory("Food");
+        assertTrue(food.addTaxRate(new TaxRate(LocalDate.of(2024, 1, 1), new BigDecimal("0.07"))));
+        assertFalse(
+                food.addTaxRate(new TaxRate(LocalDate.of(2024, 1, 1), new BigDecimal("0.07"))),
+                "equal rate must report not-added");
+        assertEquals(1, food.getTaxRates().size());
     }
 }

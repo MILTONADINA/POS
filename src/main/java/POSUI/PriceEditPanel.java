@@ -131,6 +131,15 @@ public class PriceEditPanel extends JPanel {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
+                        // Capture the current values so the edit can roll back if it would collide
+                        // with an existing price (a TreeSet add is a no-op on an equal key).
+                        BigDecimal origAmount = price.getPrice();
+                        LocalDate origEffective = price.getEffectiveDate();
+                        LocalDate origEnd =
+                                price instanceof PromoPrice
+                                        ? ((PromoPrice) price).getEndDate()
+                                        : null;
+
                         // Remove before mutating so the Item's price TreeSet re-sorts.
                         if (!isAdd) {
                             item.removePrice(price);
@@ -140,7 +149,23 @@ public class PriceEditPanel extends JPanel {
                         if (price instanceof PromoPrice) {
                             ((PromoPrice) price).setEndDate(end);
                         }
-                        item.addPrice(price);
+                        if (!item.addPrice(price)) {
+                            // An equal price already exists; roll back so nothing is silently lost.
+                            price.setPrice(origAmount);
+                            price.setEffectiveDate(origEffective);
+                            if (price instanceof PromoPrice) {
+                                ((PromoPrice) price).setEndDate(origEnd);
+                            }
+                            if (!isAdd) {
+                                item.addPrice(price);
+                            }
+                            JOptionPane.showMessageDialog(
+                                    PriceEditPanel.this,
+                                    "A price with that effective date and amount already exists.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

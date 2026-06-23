@@ -74,13 +74,31 @@ public class TaxRateEditPanel extends JPanel {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
+                        // Capture current values so the edit can roll back if it would collide with
+                        // an existing rate (a TreeSet add is a no-op on an equal key).
+                        BigDecimal origRate = taxRate.getTaxRate();
+                        LocalDate origEffective = taxRate.getEffectiveDate();
+
                         // Remove before mutating so the TreeSet re-sorts on the new effective date.
                         if (!isAdd) {
                             taxCategory.removeTaxRate(taxRate);
                         }
                         taxRate.setTaxRate(rate);
                         taxRate.setEffectiveDate(effective);
-                        taxCategory.addTaxRate(taxRate);
+                        if (!taxCategory.addTaxRate(taxRate)) {
+                            // An equal rate already exists; roll back so nothing is silently lost.
+                            taxRate.setTaxRate(origRate);
+                            taxRate.setEffectiveDate(origEffective);
+                            if (!isAdd) {
+                                taxCategory.addTaxRate(taxRate);
+                            }
+                            JOptionPane.showMessageDialog(
+                                    TaxRateEditPanel.this,
+                                    "A rate with that effective date and rate already exists.",
+                                    "Invalid input",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                         if (!SaveSupport.saveOrWarn(null, storeService)) {
                             return;
                         }

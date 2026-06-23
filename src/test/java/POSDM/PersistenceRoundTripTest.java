@@ -259,6 +259,14 @@ class PersistenceRoundTripTest {
         Path file = dir.resolve("store.csv");
         Files.writeString(file, "  garbage binary\nnot a known record type\n");
         assertThrows(StorePersistenceException.class, () -> new CsvStoreRepository(file).load());
+        // The corrupt file is quarantined (moved aside) so the next launch starts cleanly.
+        assertFalse(Files.exists(file), "corrupt file should be moved aside");
+        try (java.util.stream.Stream<Path> entries = Files.list(dir)) {
+            assertTrue(
+                    entries.anyMatch(
+                            p -> p.getFileName().toString().startsWith("store.csv.corrupt-")),
+                    "a .corrupt- backup should remain");
+        }
     }
 
     @Test
