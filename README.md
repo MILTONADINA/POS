@@ -36,8 +36,8 @@ payments, and per-cashier register sessions. See also the [login screen](docs/pr
   two decimal places; no floating-point currency arithmetic.
 - **Resilient CSV persistence** — a fully symmetric, line-oriented format with round-trip tests;
   malformed lines are logged and skipped instead of crashing the load.
-- **JUnit 5 + JaCoCo** — 55 unit/integration tests covering the domain and persistence layers, with a
-  coverage report produced on every build.
+- **JUnit 5 + JaCoCo** — a unit/integration suite covering the domain and persistence layers, with a
+  coverage report (and gate) produced on every build.
 - **Enforced quality gates** — every `mvn verify` runs Spotless (Google Java Format), SpotBugs static
   analysis (zero warnings), and a JaCoCo coverage gate, so formatting and bug-pattern regressions fail
   the build rather than slipping through review.
@@ -134,7 +134,7 @@ mvn test       # run the unit/integration tests
 mvn verify     # run tests and produce the JaCoCo report (target/site/jacoco/index.html)
 ```
 
-The suite is 55 tests built on **JUnit 5 (Jupiter)** and covers, among other things:
+The suite is built on **JUnit 5 (Jupiter)** and covers, among other things:
 
 - sale money math — subtotal, tax, total, change, payment sufficiency, and over-tender capping;
 - date-based price selection, including promotional-window expiry;

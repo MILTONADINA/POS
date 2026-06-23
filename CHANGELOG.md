@@ -52,7 +52,7 @@ layered application.
   both running on every push and pull request.
 
 ### Testing
-- Added a real **JUnit 5 (Jupiter)** suite (55 tests) covering sale money math, price/promo selection,
+- Added a real **JUnit 5 (Jupiter)** suite covering sale money math, price/promo selection,
   tax-rate selection, collection contracts, payment polymorphism and PAN masking, PBKDF2 hashing, the
   service-layer login flow against an in-memory repository, and a lossless persistence round-trip.
 

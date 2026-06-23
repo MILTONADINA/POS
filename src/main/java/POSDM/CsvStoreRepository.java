@@ -244,6 +244,10 @@ public class CsvStoreRepository implements StoreRepository {
                         break;
                     case SALE_LINE_ITEM:
                         require(f, 3, lineNo);
+                        // Validate the item reference like the other branches do: an unknown item
+                        // throws here and the line is logged and skipped, never added as a null
+                        // item.
+                        requireItem(store, f[1], lineNo);
                         requireSale(currentSale, lineNo)
                                 .addSaleLineItem(new SaleLineItem(f[1], f[2], store));
                         break;
