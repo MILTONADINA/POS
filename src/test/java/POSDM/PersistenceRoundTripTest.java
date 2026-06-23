@@ -234,6 +234,25 @@ class PersistenceRoundTripTest {
     }
 
     @Test
+    @DisplayName("values beginning with an apostrophe or formula trigger round-trip exactly")
+    void leadingApostropheRoundTrips(@TempDir Path dir) {
+        Path file = dir.resolve("store.csv");
+        Store store = new Store("'=evil", ""); // apostrophe immediately followed by a trigger
+        TaxCategory food = new TaxCategory("Food");
+        food.addTaxRate(new TaxRate(LocalDate.of(2000, 1, 1), new BigDecimal("0.07")));
+        store.addTaxCategory(food);
+        Item item = new Item("1", "'=1+1");
+        item.setTaxCategory(food);
+        item.addPrice(new Price("1.00", "1/1/2000"));
+        store.addItem(item);
+
+        new CsvStoreRepository(file).save(store);
+        Store loaded = new CsvStoreRepository(file).load();
+        assertEquals("'=evil", loaded.getName());
+        assertEquals("'=1+1", loaded.findItemForNumber("1").getDescription());
+    }
+
+    @Test
     @DisplayName(
             "a present but unparseable data file is rejected, not loaded as a silent empty store")
     void corruptFileRejected(@TempDir Path dir) throws IOException {

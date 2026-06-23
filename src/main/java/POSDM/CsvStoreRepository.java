@@ -464,7 +464,7 @@ public class CsvStoreRepository implements StoreRepository {
         // trigger gets a leading apostrophe sentinel so it can never execute if the CSV is opened
         // in
         // a spreadsheet. The sentinel is stripped again on read so the value round-trips unchanged.
-        if (!value.isEmpty() && isFormulaTrigger(value.charAt(0))) {
+        if (!value.isEmpty() && (value.charAt(0) == '\'' || isFormulaTrigger(value.charAt(0)))) {
             value = "'" + value;
         }
         if (value.indexOf(',') >= 0 || value.indexOf('"') >= 0) {
@@ -477,9 +477,13 @@ public class CsvStoreRepository implements StoreRepository {
         return c == '=' || c == '+' || c == '-' || c == '@' || c == '\t';
     }
 
-    /** Reverses the formula-injection sentinel added by {@link #encode(String)}. */
+    /**
+     * Reverses the sentinel added by {@link #encode(String)} by removing exactly one leading
+     * apostrophe. {@code encode} adds an apostrophe to any value starting with an apostrophe or a
+     * formula trigger, so this is its exact inverse and every value round-trips unchanged.
+     */
     private static String stripSentinel(String value) {
-        if (value.length() >= 2 && value.charAt(0) == '\'' && isFormulaTrigger(value.charAt(1))) {
+        if (!value.isEmpty() && value.charAt(0) == '\'') {
             return value.substring(1);
         }
         return value;
