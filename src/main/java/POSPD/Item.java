@@ -1,207 +1,201 @@
 package POSPD;
 
-import java.util.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
- * Representation of an Item
+ * A sellable item: an item number, description, a set of UPCs, a price history (regular and
+ * promotional), and a tax category.
  */
-public class Item 
-{
+public class Item {
 
-	/**
-	 * Item Number set by the store to make it easy to find
-	 */
-	private String number;
-	
-	/**
-	 * Description of the Item given by the Store
-	 */
-	private String description;
-	
-	/**
-	 * Collection of UPCs known by the Item
-	 */
-	private TreeMap<String, UPC> upcs;
-	
-	/**
-	 * Price to charge for the Item
-	 */
-	private TreeSet<Price> prices;
-	
-	/**
-	 * TaxCategory the Item is in
-	 */
-	private TaxCategory taxCategory;
-	
+    /** Store-assigned item number. */
+    private String number;
 
-	public String getNumber() 
-	{
-		return this.number;
-	}
+    /** Human-readable description. */
+    private String description;
 
-	public void setNumber(String number) 
-	{
-		this.number = number;
-	}
+    /** UPCs that resolve to this item, keyed by code. */
+    private TreeMap<String, UPC> upcs;
 
-	public String getDescription() 
-	{
-		return this.description;
-	}
+    /** Price history, ordered by effective date. */
+    private TreeSet<Price> prices;
 
-	public void setDescription(String description) 
-	{
-		this.description = description;
-	}
-	
-	public TreeMap<String, UPC> getUpcs()
-	{
-		return upcs;
-	}
-	
-	public TreeSet<Price> getPrices()
-	{
-		return prices;
-	}
-	
-	public TaxCategory getTaxCategory() 
-	{
-		return this.taxCategory;
-	}
+    /** The tax category this item belongs to. */
+    private TaxCategory taxCategory;
 
-	public void setTaxCategory(TaxCategory taxCategory) 
-	{
-		this.taxCategory = taxCategory;
-	}
-	
-	public void setTaxCategory(String taxCategory, Store store)
-	{
-		this.taxCategory = store.getTaxCategory(taxCategory);
-	}
-	
-	/**
-	 * Default Constructor for an Item
-	 */
-	public Item() 
-	{
-		taxCategory = new TaxCategory("");
-		prices = new TreeSet<Price>();
-		upcs = new TreeMap<String, UPC>();
-	}
+    /** Creates an empty item with an empty tax category and no prices or UPCs. */
+    public Item() {
+        taxCategory = new TaxCategory("");
+        prices = new TreeSet<>();
+        upcs = new TreeMap<>();
+    }
 
-	/**
-	 * Constructor for an Item that sets number to number and description to description.
-	 * @param number Item Number given by the Store
-	 * @param description Description of an Item given by the Store
-	 */
-	public Item(String number, String description) 
-	{
-		this();
-		this.number = number;
-		this.description = description;
-	}
+    /**
+     * Creates an item with a number and description.
+     *
+     * @param number the store item number
+     * @param description the item description
+     */
+    public Item(String number, String description) {
+        this();
+        this.number = number;
+        this.description = description;
+    }
 
-	/**
-	 * Adds a Price to an item
-	 * @param price Price to be added to an Item
-	 */
-	public void addPrice(Price price) 
-	{
-		price.setItem(this);
-		prices.add(price);
-	}
+    public String getNumber() {
+        return this.number;
+    }
 
-	/**
-	 * Removes a Price from an Item
-	 * @param price Price to remove from an Item
-	 */
-	public void removePrice(Price price) 
-	{
-		prices.remove(price);
-	}
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
-	/**
-	 * Adds a UPC to the collection of UPCs known by the Item
-	 * @param upc UPC to add to the collection of UPCs
-	 */
-	public void addUPC(UPC upc) 
-	{
-		upcs.put(upc.getUPC(), upc);
-	}
+    public String getDescription() {
+        return this.description;
+    }
 
-	public Boolean hasUPC(String upc)
-	{
-		Boolean result = false;
-		
-		if(upcs.containsKey(upc))
-		{
-			result = true;
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * Removes a specified UPC from the collection of UPCs
-	 * @param upc UPC to remove from the collection of UPCs
-	 */
-	public void removeUPC(UPC upc) 
-	{
-		upcs.remove(upc.getUPC());
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	/**
-	 * Gets the Price of the Item for a given Date
-	 * @param date Date used to find Price of the Item
-	 * @return Price of the Item for the given Date
-	 */
-	public Price getPriceForDate(LocalDate date) 
-	{
-		Price result = null;
-		for(Price p : prices)
-		{
-			if(p.isEffective(date))
-				 result = p;
-		}
-		
-		return result;
-	}
+    public TreeMap<String, UPC> getUpcs() {
+        return upcs;
+    }
 
-	/**
-	 * Gets the TaxRate for an item using the given Date
-	 * @param date Date used to find the TaxRate for an Item
-	 * @return TaxRate for an Item found using the given Date
-	 */
-	public BigDecimal getTaxRate(LocalDate date) 
-	{
-		return taxCategory.getTaxRateForDate(date);
-	}
+    public TreeSet<Price> getPrices() {
+        return prices;
+    }
 
-	/**
-	 * Calculates the amount of money to charge for a quantity of Items on a given Date
-	 * @param date Date used to check for the Price of an Item
-	 * @param quantity Quantity of an Item
-	 * @return Amount to charge for the Items
-	 */
-	public BigDecimal calcAmountForDateQty(LocalDate date, int quantity) 
-	{
-		return getPriceForDate(date).calcAmountForQty(quantity);
-	}
+    public TaxCategory getTaxCategory() {
+        return this.taxCategory;
+    }
 
-	/**
-	 * Makes a string representation of an Item
-	 * @return String representation of an Item
-	 */
-	public String toString() 
-	{	
-		return new String(number + " " + description);
-	}
+    public void setTaxCategory(TaxCategory taxCategory) {
+        this.taxCategory = taxCategory;
+    }
 
-	
-	public Boolean isUsed()
-	{
-		return !(upcs.isEmpty() && prices.isEmpty());
-	}
+    /**
+     * Resolves and sets the tax category by name from the given store.
+     *
+     * @param taxCategory the category name
+     * @param store the store holding the category definitions
+     */
+    public void setTaxCategory(String taxCategory, Store store) {
+        this.taxCategory = store.getTaxCategory(taxCategory);
+    }
+
+    /**
+     * Adds a price to this item's price history.
+     *
+     * @param price the price to add
+     */
+    public void addPrice(Price price) {
+        price.setItem(this);
+        prices.add(price);
+    }
+
+    /**
+     * Removes a price from this item's price history.
+     *
+     * @param price the price to remove
+     */
+    public void removePrice(Price price) {
+        prices.remove(price);
+    }
+
+    /**
+     * Adds a UPC to this item.
+     *
+     * @param upc the UPC to add
+     */
+    public void addUPC(UPC upc) {
+        upcs.put(upc.getUPC(), upc);
+    }
+
+    /**
+     * Returns whether this item carries the given UPC.
+     *
+     * @param upc the UPC code
+     * @return {@code true} if present
+     */
+    public boolean hasUPC(String upc) {
+        return upcs.containsKey(upc);
+    }
+
+    /**
+     * Removes a UPC from this item.
+     *
+     * @param upc the UPC to remove
+     */
+    public void removeUPC(UPC upc) {
+        upcs.remove(upc.getUPC());
+    }
+
+    /**
+     * Returns the price in effect on the given date. The rule is explicit and independent of set
+     * ordering: an in-window {@link PromoPrice} always takes precedence; otherwise the latest-dated
+     * regular price applies. Among multiple effective promos, the latest-dated one wins.
+     *
+     * @param date the date to evaluate
+     * @return the effective {@link Price}, or {@code null} if the item has no price effective on
+     *     that date
+     */
+    public Price getPriceForDate(LocalDate date) {
+        Price regular = null;
+        PromoPrice promo = null;
+        for (Price p : prices) {
+            if (!p.isEffective(date)) {
+                continue;
+            }
+            if (p instanceof PromoPrice) {
+                if (promo == null || p.getEffectiveDate().isAfter(promo.getEffectiveDate())) {
+                    promo = (PromoPrice) p;
+                }
+            } else if (regular == null
+                    || !p.getEffectiveDate().isBefore(regular.getEffectiveDate())) {
+                regular = p;
+            }
+        }
+        return promo != null ? promo : regular;
+    }
+
+    /**
+     * Returns the fractional tax rate for this item on the given date.
+     *
+     * @param date the date to evaluate
+     * @return the fractional tax rate (0 if none applies)
+     */
+    public BigDecimal getTaxRate(LocalDate date) {
+        return taxCategory.getTaxRateForDate(date);
+    }
+
+    /**
+     * Calculates the charge for a quantity of this item on a given date.
+     *
+     * @param date the date used to select the effective price
+     * @param quantity the quantity
+     * @return the amount due, normalized to cents
+     * @throws IllegalStateException if the item has no price effective on {@code date}
+     */
+    public BigDecimal calcAmountForDateQty(LocalDate date, int quantity) {
+        Price effective = getPriceForDate(date);
+        if (effective == null) {
+            throw new IllegalStateException(
+                    "No effective price for item " + number + " on " + DateUtils.format(date));
+        }
+        return effective.calcAmountForQty(quantity);
+    }
+
+    @Override
+    public String toString() {
+        return number + " " + description;
+    }
+
+    /** Returns whether this item has any UPCs or prices (and so is considered in use). */
+    public boolean isUsed() {
+        return !(upcs.isEmpty() && prices.isEmpty());
+    }
 }

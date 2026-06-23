@@ -1,42 +1,54 @@
 package POSPD;
 
+import java.security.SecureRandom;
+import java.util.Random;
+
 /**
- * Representation of an AuthorizedPayment, payments that have to be authorized
+ * A payment that must be authorized by an external party (credit card, check). Authorization here
+ * is <em>simulated</em>: it approves with a fixed probability. The random source is injectable via
+ * {@link #setAuthorizationRng(Random)} so the decision can be made deterministic in tests.
  */
-public abstract class AuthorizedPayment extends Payment 
-{
+public abstract class AuthorizedPayment extends Payment {
 
-	/**
-	 * The code for a Payment to show its authorization
-	 */
-	private String authorizationCode;
+    /** Approval threshold out of 100 (values at or below approve), i.e. ~85% approval. */
+    static final int APPROVAL_THRESHOLD = 85;
 
-	public String getAuthorizationCode() 
-	{
-		return this.authorizationCode;
-	}
+    /** Authorization code returned by the (simulated) processor. */
+    private String authorizationCode;
 
-	public void setAuthorizationCode(String authorizationCode) 
-	{
-		this.authorizationCode = authorizationCode;
-	}
+    /** Random source for the simulated authorization decision. */
+    private Random rng = new SecureRandom();
 
-	/**
-	 * Determines whether or not an AuthorizedPayment is authorized
-	 * @return True, payment is authorized. False, payment is not authorized
-	 */
-	public Boolean isAuthorized() 
-	{
-		return false;
-	}
+    public String getAuthorizationCode() {
+        return this.authorizationCode;
+    }
 
-	/**
-	 * Determines whether or not an AuthorizedPayment counts as cash, usually in case of making change
-	 * @return True, counts as cash. False, does NOT count as cash
-	 */
-	public Boolean countsAsCash() 
-	{
-		return true;
-	}
+    public void setAuthorizationCode(String authorizationCode) {
+        this.authorizationCode = authorizationCode;
+    }
 
+    /**
+     * Overrides the random source used by {@link #isAuthorized()} (primarily for deterministic
+     * tests).
+     *
+     * @param rng the random source to use
+     */
+    public void setAuthorizationRng(Random rng) {
+        this.rng = rng;
+    }
+
+    /**
+     * Simulates an authorization decision.
+     *
+     * @return {@code true} if the (simulated) processor approves the payment
+     */
+    public boolean isAuthorized() {
+        return rng.nextInt(100) + 1 <= APPROVAL_THRESHOLD;
+    }
+
+    /** Authorized tenders (credit, check) are not cash for the purpose of making change. */
+    @Override
+    public boolean countsAsCash() {
+        return false;
+    }
 }

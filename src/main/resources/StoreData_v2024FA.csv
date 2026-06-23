@@ -1,29 +1,40 @@
 Store,David's Quick Mart
 TaxCategory,Food,0.07,1/1/24
 TaxCategory,Beverage,0,1/1/24
-Cashier,1,David,111-11-1111,1 1st Street,Edmond,OK,73034,405.348.1111,
-Cashier,2,Sally,222-22-2222,2 2nd Street,Edmond,OK,73034,405.348.2222,
-Item,1001,11111111111,Turkey Sandwich,Food,2.59,1/1/24,2.29,9/1/24,12/30/24
-Item,1002,22222222222,Ham Sandwich,Food,2.59,1/1/24
-Item,1003,33333333333,Coke,Beverage,0.97,1/1/24,0.79,8/1/24,9/1/24
-Item,1004,44444444444,Dr. Pepper,Beverage,0.97,1/1/24,0.79,11/30/24,12/15/24
+Cashier,1,David,000-00-0001,1 1st Street,Edmond,OK,73034,405.555.1111,pbkdf2_sha256$600000$spHvhsF2HEZOtQw6Gl62cQ$E7eI3MF7x30UbbehOB18hyeOXPxPVk1mF1j86Hce95g
+Cashier,2,Sally,000-00-0002,2 2nd Street,Edmond,OK,73034,405.555.2222,pbkdf2_sha256$600000$fHWCv3dmiNmcbzXyLy0xKQ$neQJWfM3rKYxoWc0DMvQpqQh6dXqGMjCa+RGqyLoid0
+Item,1001,Turkey Sandwich,Food
+UPC,1001,11111111111
+Price,1001,2.59,1/1/24
+PromoPrice,1001,2.29,9/1/24,12/30/24
+Item,1002,Ham Sandwich,Food
+UPC,1002,22222222222
+Price,1002,2.59,1/1/24
+Item,1003,Coke,Beverage
+UPC,1003,33333333333
+Price,1003,0.97,1/1/24
+PromoPrice,1003,0.79,8/1/24,9/1/24
+Item,1004,Dr. Pepper,Beverage
+UPC,1004,44444444444
+Price,1004,0.97,1/1/24
+PromoPrice,1004,0.79,11/30/24,12/15/24
 Register,1
 Register,2
-Session,1,2
-Sale,Y
+Session,1,2,2024-09-15T08:00:00,2024-09-15T16:00:00
+Sale,true
 SaleLineItem,1001,1
 SaleLineItem,1002,2
 Payment,Cash,7.47,10.00
-Sale,N
+Sale,false
 SaleLineItem,1003,2
 SaleLineItem,1004,1
-Payment,Credit,2.91,2.91,MC,1111222244445550,10/1/2025
-Session,2,1
-Sale,N
+Payment,Credit,2.91,2.91,MC,************5550,10/1/2025
+Session,2,1,2024-09-16T08:00:00,2024-09-16T16:00:00
+Sale,false
 SaleLineItem,1001,1
 SaleLineItem,1003,2
 Payment,Cash,4.39,5.00
-Sale,N
+Sale,false
 SaleLineItem,1002,2
 SaleLineItem,1004,1
 Payment,Check,6.51,6.51,1010101010,111111111,1001

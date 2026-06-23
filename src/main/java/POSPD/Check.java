@@ -1,117 +1,81 @@
 package POSPD;
 
 import java.math.BigDecimal;
-import java.util.Random;
 
 /**
- * Representation of a Check to be used during a Sale
+ * A check payment. Bank account details are sensitive: {@link #toString()} masks the account number
+ * to its last four digits.
  */
-public class Check extends AuthorizedPayment 
-{
+public class Check extends AuthorizedPayment {
 
-	/**
-	 * Bank RoutingNumber of the check, specifies what bank the money is coming from
-	 */
-	private String routingNumber;
-	/**
-	 * Bank AccountNumber of the check, specifies who's account the money will come from
-	 */
-	private String accountNumber;
-	/**
-	 * A number specific to one check
-	 */
-	private String checkNumber;
+    /** Bank routing number (identifies the bank). */
+    private String routingNumber;
 
-	public String getRoutingNumber() 
-	{
-		return this.routingNumber;
-	}
+    /** Bank account number. */
+    private String accountNumber;
 
-	public void setRoutingNumber(String routingNumber) 
-	{
-		this.routingNumber = routingNumber;
-	}
+    /** Check serial number. */
+    private String checkNumber;
 
-	public String getAccountNumber() 
-	{
-		return this.accountNumber;
-	}
+    /** Creates an empty, zero-value check. */
+    public Check() {
+        setAmount(BigDecimal.ZERO);
+        setAmtTendered(BigDecimal.ZERO);
+        routingNumber = "";
+        accountNumber = "";
+        checkNumber = "";
+    }
 
-	public void setAccountNumber(String accountNumber) 
-	{
-		this.accountNumber = accountNumber;
-	}
+    /**
+     * Creates a check from string inputs (as read from persistence). The routing number is set
+     * separately via {@link #setRoutingNumber(String)}.
+     *
+     * @param amount the amount applied to the sale
+     * @param amountTendered the amount tendered
+     * @param accountNumber the bank account number
+     * @param checkNumber the check serial number
+     */
+    public Check(String amount, String amountTendered, String accountNumber, String checkNumber) {
+        this();
+        setAmount(new BigDecimal(amount));
+        setAmtTendered(new BigDecimal(amountTendered));
+        this.accountNumber = accountNumber;
+        this.checkNumber = checkNumber;
+    }
 
-	public String getCheckNumber() 
-	{
-		return this.checkNumber;
-	}
+    public String getRoutingNumber() {
+        return this.routingNumber;
+    }
 
-	public void setCheckNumber(String checkNumber) 
-	{
-		this.checkNumber = checkNumber;
-	}
+    public void setRoutingNumber(String routingNumber) {
+        this.routingNumber = routingNumber;
+    }
 
-	/**
-	 * Default constructor of a Check
-	 */
-	public Check() 
-	{
-		this.setAmount(new BigDecimal(0));
-		this.setAmtTendered(new BigDecimal(0));
-		routingNumber = "";
-		accountNumber = "";
-		checkNumber = "";
-	}
+    public String getAccountNumber() {
+        return this.accountNumber;
+    }
 
-	/**
-	 * Constructor for a check that initializes it's amount to amount, accountNumber to accountNumber, and checkNumber to checkNumber
-	 * @param amount Amount to be paid during a Sale
-	 * @param accountNumber Account identifier for a Check's bank
-	 * @param checkNumber Check's identifier number
-	 */
-	public Check(String amount, String amountTendered, String accountNumber, String checkNumber) 
-	{
-		this();
-		this.setAmount(new BigDecimal(amount));
-		this.setAmtTendered(new BigDecimal(amountTendered));
-		this.accountNumber = accountNumber;
-		this.checkNumber = checkNumber;
-	}
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
 
-	/**
-	 * Determines whether or not a Check is authorized to pay a Sale
-	 * @return True, is authorized. False, is NOT authorized
-	 */
-	public Boolean isAuthorized() 
-	{
-		Random rand = new Random();
-		Boolean result = true;
-		
-		if(rand.nextInt(100) + 1 > 85)
-		{
-			result = false;
-		}
-		
-		return result;
-	}
-	/**
-	 * Determines whether a Check payment counts as Cash, used in terms of making change
-	 * @return True, counts as cash. False, does not count as cash
-	 */
-	public Boolean countsAsCash() 
-	{
-		return true;
-	}
+    public String getCheckNumber() {
+        return this.checkNumber;
+    }
 
-	
-	/**
-	 * Makes the string representation of a Check
-	 * @return String representation of a Check
-	 */
-	public String toString() 
-	{
-		return new String("\n Amount: " + this.getAmount() +  "\nRouting #: " + routingNumber + "\nAccount #: " + accountNumber + "\nCheck #: " + checkNumber);
-	}
+    public void setCheckNumber(String checkNumber) {
+        this.checkNumber = checkNumber;
+    }
 
+    @Override
+    public String toString() {
+        return "\n Amount: "
+                + getAmount()
+                + "\nRouting #: "
+                + routingNumber
+                + "\nAccount #: "
+                + Credit.maskPan(accountNumber)
+                + "\nCheck #: "
+                + checkNumber;
+    }
 }

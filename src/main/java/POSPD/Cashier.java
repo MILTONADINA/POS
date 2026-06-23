@@ -1,163 +1,157 @@
 package POSPD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Representation of a cashier
+ * A cashier employed by the store, with login credentials and a history of work sessions.
+ *
+ * <p>Credentials are stored as a salted PBKDF2 hash (see {@link PasswordHasher}). The class
+ * deliberately distinguishes {@link #setPassword(String)} (accepts a new <em>plaintext</em>
+ * password and hashes it) from {@link #setPasswordHash(String)} (accepts an <em>already-hashed</em>
+ * value, used by the persistence layer) so that loading a stored credential never re-hashes it.
  */
 public class Cashier {
 
-	/**
-	 * Employee number of the cashier
-	 */
-	private String number;
+    /** Employee number identifying the cashier. */
+    private String number;
 
-	/**
-	 * Person that knows a cashier (probably actually the cashier)
-	 */
-	private Person person;
+    /** The person record (name, address, SSN, ...) for this cashier. */
+    private Person person;
 
-	/**
-	 * Work session the Cashier has worked/is working
-	 */
-	private ArrayList<Session> sessions;
+    /** Work sessions the cashier has worked. */
+    private List<Session> sessions;
 
-	/**
-	 * Password for the Cashier's log-in
-	 */
-	private String password;
+    /** Salted PBKDF2 hash of the cashier's password (never the plaintext). */
+    private String password;
 
-	public String getNumber() {
-		return this.number;
-	}
+    /** Creates an empty cashier with no credential set. */
+    public Cashier() {
+        sessions = new ArrayList<>();
+        person = new Person();
+    }
 
-	public void setNumber(String number) {
-		this.number = number;
-	}
+    /**
+     * Creates a cashier from its persisted fields. The supplied {@code passwordHash} is stored
+     * verbatim (it is already hashed); it is <em>not</em> re-hashed.
+     */
+    public Cashier(
+            String number,
+            String name,
+            String sSN,
+            String address,
+            String city,
+            String state,
+            String zip,
+            String phone,
+            String passwordHash) {
+        this();
+        this.number = number;
+        this.person = new Person(name, sSN, address, city, state, zip, phone, this);
+        this.password = passwordHash;
+    }
 
-	public Person getPerson() {
-		return this.person;
-	}
+    /**
+     * Creates a cashier with a known {@link Person} and a new <em>plaintext</em> password, which is
+     * hashed before storage.
+     */
+    public Cashier(String number, Person person, String plaintextPassword) {
+        this();
+        this.number = number;
+        this.person = person;
+        setPassword(plaintextPassword);
+    }
 
-	public void setPerson(Person person) {
-		this.person = person;
-	}
+    public String getNumber() {
+        return this.number;
+    }
 
-	public String getPassword() {
-		return this.password;
-	}
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
-	public void setPassword(String password) {
-		this.password = hashPassword(password);
-	}
+    public Person getPerson() {
+        return this.person;
+    }
 
-	private String hashPassword(String password) {
-		try {
-			java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-			byte[] hash = md.digest(password.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-			StringBuilder hexString = new StringBuilder();
-			for (byte b : hash) {
-				String hex = Integer.toHexString(0xff & b);
-				if (hex.length() == 1)
-					hexString.append('0');
-				hexString.append(hex);
-			}
-			return hexString.toString();
-		} catch (java.security.NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public void setPerson(Person person) {
+        this.person = person;
+    }
 
-	/**
-	 * Cashier default constructor
-	 */
-	public Cashier() {
-		sessions = new ArrayList<Session>();
-		person = new Person();
-	}
+    /** Returns the stored salted password hash (never the plaintext). */
+    public String getPassword() {
+        return this.password;
+    }
 
-	public Cashier(String number, String name, String sSN, String address, String city, String state, String zip,
-			String phone, String password) {
-		this();
-		this.number = number;
-		this.person = new Person(name, sSN, address, city, state, zip, phone, this);
-		this.password = hashPassword(password);
-	}
+    /**
+     * Sets a new password from plaintext, hashing it with a fresh salt.
+     *
+     * @param plaintext the new plaintext password; must be non-null and non-empty
+     * @throws IllegalArgumentException if {@code plaintext} is null or empty
+     */
+    public void setPassword(String plaintext) {
+        this.password = PasswordHasher.hash(plaintext);
+    }
 
-	/**
-	 * Cashier constructor that initializes number to number, person to person, and
-	 * password to password.
-	 * 
-	 * @param number   Cashier employee number
-	 * @param person   Person the Cashier knows
-	 * @param password Password for Cashier log-in
-	 */
-	public Cashier(String number, Person person, String password) {
-		this();
-		this.number = number;
-		this.person = person;
-		this.password = hashPassword(password);
-	}
+    /**
+     * Stores an already-hashed credential verbatim, without re-hashing. Used by the persistence
+     * layer when reconstructing a cashier from disk.
+     *
+     * @param passwordHash an encoded hash previously produced by {@link
+     *     PasswordHasher#hash(String)}
+     */
+    public void setPasswordHash(String passwordHash) {
+        this.password = passwordHash;
+    }
 
-	/**
-	 * Adds a new work session to a cashier
-	 * 
-	 * @param session Session to add to the worker
-	 */
-	public void addSession(Session session) {
-		sessions.add(session);
-	}
+    /**
+     * Verifies a candidate plaintext password against this cashier's stored hash.
+     *
+     * @param password the candidate plaintext
+     * @return {@code true} only if the password matches
+     */
+    public boolean isAuthorized(String password) {
+        return PasswordHasher.verify(password, this.password);
+    }
 
-	/**
-	 * Removes a work session from the cashier
-	 * 
-	 * @param session Session to remove from the cashier
-	 */
-	public void removeSession(Session session) {
-		sessions.remove(session);
-	}
+    /**
+     * Adds a work session to this cashier.
+     *
+     * @param session session to add
+     */
+    public void addSession(Session session) {
+        sessions.add(session);
+    }
 
-	/**
-	 * Determines whether or not a Cashier is authorized
-	 * 
-	 * @param password Password of the cashier, used to determine authorization
-	 * @return true, cashier is authorizes, false, cashier is not authorized
-	 */
-	public Boolean isAuthorized(String password) {
-		return this.password.equals(hashPassword(password));
-	}
+    /**
+     * Removes a work session from this cashier.
+     *
+     * @param session session to remove
+     */
+    public void removeSession(Session session) {
+        sessions.remove(session);
+    }
 
-	/**
-	 * Makes a string representation of a Cashier
-	 * 
-	 * @return String representation of a Cashier
-	 */
-	public String toString() {
-		return person.getName();
-	}
+    /** Returns whether this cashier has any recorded sessions. */
+    public boolean isUsed() {
+        return !sessions.isEmpty();
+    }
 
-	public Boolean isUsed() {
-		Boolean result = false;
-		if (!sessions.isEmpty()) {
-			result = true;
-		}
-		return result;
-	}
+    /** Returns whether this cashier may be safely deleted (i.e. has no sessions). */
+    public boolean isOkToDelete() {
+        return sessions.isEmpty();
+    }
 
-	public boolean IsOkToDelete() {
-		if (getSessions().isEmpty()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+    public List<Session> getSessions() {
+        return sessions;
+    }
 
-	public ArrayList<Session> getSessions() {
-		return sessions;
-	}
+    public void setSessions(ArrayList<Session> sessions) {
+        this.sessions = sessions;
+    }
 
-	public void setSessions(ArrayList<Session> sessions) {
-		this.sessions = sessions;
-	}
-
+    @Override
+    public String toString() {
+        return person.getName();
+    }
 }

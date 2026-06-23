@@ -3,57 +3,48 @@ package POSPD;
 import java.math.BigDecimal;
 
 /**
- * Representation of a customer's payment to the Store
+ * A customer payment toward a {@link Sale}: the amount applied and the amount tendered. Subclasses
+ * model the tender type (cash, credit, check).
  */
-public abstract class Payment 
-{
+public abstract class Payment {
 
-	/**
-	 * Amount of money to be expected from a Sale
-	 */
-	private BigDecimal amount;
-	/**
-	 * Amount of money paid during a Sale
-	 */
-	private BigDecimal amtTendered;
+    /** Amount of the sale this payment is applied to. */
+    private BigDecimal amount;
 
-	public BigDecimal getAmount() 
-	{
-		return this.amount;
-	}
+    /** Amount actually tendered by the customer. */
+    private BigDecimal amtTendered;
 
-	public void setAmount(BigDecimal amount) 
-	{
-		this.amount = amount;
-	}
+    public BigDecimal getAmount() {
+        return this.amount;
+    }
 
-	public void setAmount(String amount)
-	{
-		this.amount = new BigDecimal(amount);
-	}
-	
-	public BigDecimal getAmtTendered() 
-	{
-		return this.amtTendered;
-	}
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 
-	public void setAmtTendered(String amtTendered)
-	{
-		this.amtTendered = new BigDecimal(amtTendered);
-	}
-	
-	public void setAmtTendered(BigDecimal amtTendered) 
-	{
-		this.amtTendered = amtTendered;
-	}
+    public void setAmount(String amount) {
+        this.amount = new BigDecimal(amount);
+    }
 
-	/**
-	 * Determines whether a payment counts as cash for the Sale
-	 * @return True, a payment counts as cash. False, a payment does NOT count as cash
-	 */
-	public Boolean countsAsCash() 
-	{
-		return true;
-	}
+    public BigDecimal getAmtTendered() {
+        return this.amtTendered;
+    }
 
+    public void setAmtTendered(String amtTendered) {
+        this.amtTendered = new BigDecimal(amtTendered);
+    }
+
+    public void setAmtTendered(BigDecimal amtTendered) {
+        this.amtTendered = amtTendered;
+    }
+
+    /**
+     * Whether this tender counts as cash for the purpose of making change. Cash does; authorized
+     * tenders (credit, check) do not.
+     *
+     * @return {@code true} if the tender counts as cash
+     */
+    public boolean countsAsCash() {
+        return true;
+    }
 }

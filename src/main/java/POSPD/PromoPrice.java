@@ -1,89 +1,82 @@
 package POSPD;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
- * Representation of a PromoPrice
+ * A promotional {@link Price} that is only in effect within a bounded date window {@code
+ * [effectiveDate, endDate]} (both inclusive).
  */
-public class PromoPrice extends Price
-{
+public class PromoPrice extends Price {
 
-	/**
-	 * Date a PromoPrice will no longer be effective
-	 */
-	private LocalDate endDate;
+    /** Last date (inclusive) on which the promo applies. */
+    private LocalDate endDate;
 
-	public LocalDate getEndDate() 
-	{
-		return this.endDate;
-	}
+    /** Creates a zero promo price effective at the sentinel date {@code 1/1/1111}. */
+    public PromoPrice() {
+        super();
+        endDate = DateUtils.parseDate("1/1/1111");
+    }
 
-	public void setEndDate(LocalDate endDate) 
-	{
-		this.endDate = endDate;
-	}
+    /**
+     * Creates a promo price from string inputs (as read from persistence).
+     *
+     * @param price the promotional unit price
+     * @param effectiveDate the start of the promo window (inclusive)
+     * @param endDate the end of the promo window (inclusive)
+     */
+    public PromoPrice(String price, String effectiveDate, String endDate) {
+        super(price, effectiveDate);
+        this.endDate = DateUtils.parseDate(endDate);
+    }
 
-	/**
-	 * Default Constructor for a PromoPrice
-	 */
-	public PromoPrice() 
-	{
-		super();
-		endDate = LocalDate.parse("1/1/1111", DateTimeFormatter.ofPattern("M/d/yyyy"));
-	}
+    public LocalDate getEndDate() {
+        return this.endDate;
+    }
 
-	/**
-	 * Constructor for a PromoPrice that sets price to price, effectiveDate to effectiveDate, and endDate to endDate
-	 * @param price Price to set this.price to
-	 * @param effectiveDate Date to set this.effectiveDate to
-	 * @param endDate Date to set this.endDate to
-	 */
-	public PromoPrice(String price, String effectiveDate, String endDate) //AC2.D
-	{
-		this();
-		this.setPrice(new BigDecimal(price));
-		this.setEffectiveDate(LocalDate.parse(effectiveDate, DateTimeFormatter.ofPattern("M/d/yy"))); 
-		this.endDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("M/d/yy"));               
-	}
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
 
-	/**
-	 * Determines whether or not the Price is active
-	 * @param date Date used to determine whether or not a price is effective
-	 * @return True, price is effective. False, price is NOT effective
-	 */
-	public Boolean isEffective(LocalDate date) 
-	{
-		Boolean result = false;
-		
-		if(this.getEffectiveDate().isBefore(date) || this.getEffectiveDate().equals(date) && this.getEndDate().isAfter(date))
-			result = true;
-		
-		return result;
-	}
+    /**
+     * Returns whether the promo is in effect on the given date — that is, on or after the effective
+     * date <em>and</em> on or before the end date. (The original implementation had an
+     * operator-precedence bug that ignored the end date for any date after the start, so expired
+     * promos applied forever.)
+     *
+     * @param date the date to test
+     * @return {@code true} only if {@code date} falls within {@code [effectiveDate, endDate]}
+     */
+    @Override
+    public boolean isEffective(LocalDate date) {
+        return !date.isBefore(getEffectiveDate()) && !date.isAfter(endDate);
+    }
 
-	/**
-	 * Compares one PromoPrice to another PromoPrice
-	 * @param price PromoPrice to compare this.PromoPrice to
-	 * @return 0: the prices are the same, negative: the parameter is bigger, positive: the parameter is smaller
-	 */
-	public int compareTo(Price price) 
-	{
-		return super.compareTo(price);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PromoPrice other = (PromoPrice) o;
+        return Objects.equals(getEffectiveDate(), other.getEffectiveDate())
+                && getPrice().compareTo(other.getPrice()) == 0
+                && Objects.equals(endDate, other.endDate);
+    }
 
-	/**
-	 * Makes a string representation of a PromoPrice
-	 * @return String representation of a PromoPrice
-	 */
-	public String toString() 
-	{
-		return new String(getPrice().toString() + " " + getEffectiveDate().format(DateTimeFormatter.ofPattern("M/d/yyyy")) + " " + endDate.format(DateTimeFormatter.ofPattern("M/d/yyyy")));
-	}
-	
-	public Boolean isUsed()
-	{
-		return false;
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getEffectiveDate(), getPrice().stripTrailingZeros(), endDate);
+    }
+
+    @Override
+    public String toString() {
+        return getPrice().toString()
+                + " "
+                + DateUtils.format(getEffectiveDate())
+                + " "
+                + DateUtils.format(endDate);
+    }
 }

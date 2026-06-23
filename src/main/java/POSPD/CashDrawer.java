@@ -3,67 +3,56 @@ package POSPD;
 import java.math.BigDecimal;
 
 /**
- * Representation of a CashDrawer held by a Register
+ * The cash drawer held by a {@link Register}, tracking its current cash balance and open/closed
+ * position.
  */
-public class CashDrawer 
-{
+public class CashDrawer {
 
-	/**
-	 * Cash amount held by the drawer
-	 */
-	private BigDecimal cashAmount;
-	
-	public BigDecimal getCash()
-	{
-		return cashAmount;
-	}
-	
-	/**
-	 * Position of the drawer, Open, Closed, or Other.
-	 */
-	private int position;
+    /** Current cash balance in the drawer. */
+    private BigDecimal cashAmount;
 
-	public int getPosition() 
-	{
-		return this.position;
-	}
+    /** Drawer position: open, closed, or other. */
+    private int position;
 
-	public void setPosition(int position) 
-	{
-		this.position = position;
-	}
+    /** Creates a closed drawer with a zero balance. */
+    public CashDrawer() {
+        cashAmount = BigDecimal.ZERO;
+        position = 0;
+    }
 
-	public CashDrawer()
-	{
-		cashAmount = new BigDecimal(0);
-		position = 0;
-	}
-	
-	/**
-	 * Add cash to the drawer
-	 * @param cash Amount of cash to add to a drawer
-	 */
-	public void addCash(BigDecimal cash) 
-	{
-		cashAmount = cashAmount.add(cash);
-	}
-	
-	/**
-	 * Remove cash from the cash drawer
-	 * @param cash Amount of cash to remove from the drawer
-	 */
-	public void removeCash(BigDecimal cash) 
-	{
-		cashAmount.subtract(cash);
-	}
+    public BigDecimal getCash() {
+        return cashAmount;
+    }
 
-	/**
-	 * Creates a String representation of a CashDrawer
-	 * @return String representation of a drawer
-	 */
-	public String toString() 
-	{
-		return new String("\nCash in drawer: " + cashAmount.toString());
-	}
+    public int getPosition() {
+        return this.position;
+    }
 
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    /**
+     * Adds cash to the drawer.
+     *
+     * @param cash the amount to add
+     */
+    public void addCash(BigDecimal cash) {
+        cashAmount = cashAmount.add(cash);
+    }
+
+    /**
+     * Removes cash from the drawer. ({@link BigDecimal} is immutable, so the result of the
+     * subtraction must be reassigned — the original code discarded it, making removal a no-op.)
+     *
+     * @param cash the amount to remove
+     */
+    public void removeCash(BigDecimal cash) {
+        cashAmount = cashAmount.subtract(cash);
+    }
+
+    @Override
+    public String toString() {
+        return "\nCash in drawer: " + cashAmount.toString();
+    }
 }

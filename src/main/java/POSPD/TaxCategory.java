@@ -1,105 +1,90 @@
 package POSPD;
 
-import java.util.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.TreeSet;
 
 /**
- * Representation of a TaxCategory
+ * A named tax category (e.g. {@code Food}, {@code Beverage}) holding a history of dated tax rates.
  */
-public class TaxCategory 
-{
+public class TaxCategory {
 
-	/**
-	 * Name/Category for taxes
-	 */
-	private String category;
-	/**
-	 * Collection of TaxRates for Categories
-	 */
-	private TreeSet<TaxRate> taxRates;
+    /** The category name. */
+    private String category;
 
-	public String getCategory() 
-	{
-		return category;
-	}
-	
-	public void setCategory(String category)
-	{
-		this.category = category;
-	}
-	
-	public TreeSet<TaxRate> getTaxRates()
-	{
-		return taxRates;
-	}
-	
-	/**
-	 * Default constructor for a TaxCategory
-	 */
-	public TaxCategory() 
-	{
-		category = "";
-		taxRates = new TreeSet<TaxRate>();
-	}
+    /** Dated tax rates, ordered by effective date. */
+    private TreeSet<TaxRate> taxRates;
 
-	/**
-	 * Constructor for a TaxCategory that sets category to category
-	 * @param category Name/Category for taxes
-	 */
-	public TaxCategory(String category) 
-	{
-		this();
-		this.category = category;
-	}
+    /** Creates an empty, unnamed tax category. */
+    public TaxCategory() {
+        category = "";
+        taxRates = new TreeSet<>();
+    }
 
-	/**
-	 * Gets the TaxRate for a specified date
-	 * @param date Date to determine a TaxRate
-	 * @return TaxRate for given date
-	 */
-	public BigDecimal getTaxRateForDate(LocalDate date) 
-	{
-		BigDecimal result = new BigDecimal(0);
-		
-		for(TaxRate t : taxRates)
-		{
-			if(t.isEffective(date))
-				result = t.getTaxRate();
-		}
-		
-		return result;
-	}
+    /**
+     * Creates a named tax category.
+     *
+     * @param category the category name
+     */
+    public TaxCategory(String category) {
+        this();
+        this.category = category;
+    }
 
-	/**
-	 * Adds a Tax Rate to the collection of Tax Rates
-	 * @param taxRate Tax Rate to be added to the collection of Tax Rates
-	 */
-	public void addTaxRate(TaxRate taxRate) 
-	{
-		taxRates.add(taxRate);
-	}
+    public String getCategory() {
+        return category;
+    }
 
-	/**
-	 * Removes a Tax Rate from the collection of TaxRates
-	 * @param taxRate Tax Rate to remove from the collection of TaxRates
-	 */
-	public void removeTaxRate(TaxRate taxRate) 
-	{
-		taxRates.remove(taxRate);
-	}
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-	/**
-	 * Makes a string representation of a Tax Category
-	 * @return String representation of a Tax Category
-	 */
-	public String toString() 
-	{
-		return new String(category);
-	}
-	
-	public Boolean isUsed()
-	{
-		return false;
-	}
+    public TreeSet<TaxRate> getTaxRates() {
+        return taxRates;
+    }
+
+    /**
+     * Returns the rate in effect on the given date — the latest-dated rate whose effective date is
+     * on or before {@code date} — or {@link BigDecimal#ZERO} if none applies.
+     *
+     * @param date the date to evaluate
+     * @return the effective fractional tax rate
+     */
+    public BigDecimal getTaxRateForDate(LocalDate date) {
+        BigDecimal result = BigDecimal.ZERO;
+        for (TaxRate t : taxRates) {
+            if (t.isEffective(date)) {
+                result = t.getTaxRate();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Adds a tax rate to this category.
+     *
+     * @param taxRate the rate to add
+     */
+    public void addTaxRate(TaxRate taxRate) {
+        taxRates.add(taxRate);
+    }
+
+    /**
+     * Removes a tax rate from this category.
+     *
+     * @param taxRate the rate to remove
+     */
+    public void removeTaxRate(TaxRate taxRate) {
+        taxRates.remove(taxRate);
+    }
+
+    @Override
+    public String toString() {
+        return category;
+    }
+
+    /** Returns whether this category has any rates that would block deletion. */
+    public boolean isUsed() {
+        return false;
+    }
 }

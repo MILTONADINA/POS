@@ -1,248 +1,216 @@
 package POSPD;
 
-import java.util.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Representation of a Sale
+ * A single sale: a set of line items, the payments tendered against it, the sale date, and whether
+ * it is tax-exempt. All monetary results are normalized to two decimal places.
  */
 public class Sale {
 
-	/**
-	 * Collection of Payments known by the Sale
-	 */
-	private ArrayList<Payment> payments;
+    private static final int MONEY_SCALE = 2;
 
-	/**
-	 * Collection of SaleLineItems known by the Sale, used to generate receipts
-	 */
-	private ArrayList<SaleLineItem> saleLineItems;
+    /** Payments tendered for this sale. */
+    private List<Payment> payments;
 
-	/**
-	 * Date the Sale happened
-	 */
-	private LocalDateTime date;
+    /** Line items in this sale. */
+    private List<SaleLineItem> saleLineItems;
 
-	/**
-	 * Whether or not a Sale was TaxFree
-	 */
-	private Boolean taxFree;
+    /** When the sale occurred. */
+    private LocalDateTime date;
 
-	public LocalDateTime getDate() {
-		return this.date;
-	}
+    /** Whether the sale is tax-exempt. */
+    private boolean taxFree;
 
-	public Boolean getTaxFree() {
-		return this.taxFree;
-	}
+    /** Creates an empty, taxable sale dated now. */
+    public Sale() {
+        date = LocalDateTime.now();
+        payments = new ArrayList<>();
+        saleLineItems = new ArrayList<>();
+    }
 
-	public void setTaxFree(Boolean taxFree) {
-		this.taxFree = taxFree;
-	}
+    /**
+     * Creates a sale, parsing the tax-free flag. Accepts both {@code "Y"}/{@code "N"} and {@code
+     * "true"}/{@code "false"} encodings so the value round-trips regardless of source.
+     *
+     * @param taxFree the tax-free flag as a string
+     */
+    public Sale(String taxFree) {
+        this();
+        this.taxFree = "Y".equalsIgnoreCase(taxFree) || "true".equalsIgnoreCase(taxFree);
+    }
 
-	/**
-	 * Default Constructor for a Sale
-	 */
-	public Sale() {
-		date = LocalDateTime.now();
-		payments = new ArrayList<Payment>();
-		saleLineItems = new ArrayList<SaleLineItem>();
-	}
+    public LocalDateTime getDate() {
+        return this.date;
+    }
 
-	/**
-	 * Constructor for a Sale that sets taxFree to taxFree
-	 * 
-	 * @param taxFree Whether or not a Sale is TaxFree
-	 */
-	public Sale(String taxFree) {
-		this();
-		this.taxFree = Boolean.parseBoolean(taxFree);
-	}
+    public boolean getTaxFree() {
+        return this.taxFree;
+    }
 
-	/**
-	 * Adds a Payment to the collection of Payments
-	 * 
-	 * @param payment Payment to add to the collection of Payments
-	 */
-	public void addPayment(Payment payment) {
-		payments.add(payment);
-	}
+    public void setTaxFree(boolean taxFree) {
+        this.taxFree = taxFree;
+    }
 
-	/**
-	 * Removes a specified Payment from the collection of Payments
-	 * 
-	 * @param payment Payment to be removed from the collection of Payments
-	 */
-	public void removePayment(Payment payment) {
-		payments.remove(payment);
-	}
+    /**
+     * Adds a payment to this sale.
+     *
+     * @param payment the payment to add
+     */
+    public void addPayment(Payment payment) {
+        payments.add(payment);
+    }
 
-	/**
-	 * Adds a SaleLineItem to the collection of SaleLineItems
-	 * 
-	 * @param sli SaleLineItem to be added to the collection of SaleLineItems
-	 */
-	public void addSaleLineItem(SaleLineItem sli) {
-		sli.setSale(this);
-		saleLineItems.add(sli);
-	}
+    /**
+     * Removes a payment from this sale.
+     *
+     * @param payment the payment to remove
+     */
+    public void removePayment(Payment payment) {
+        payments.remove(payment);
+    }
 
-	/**
-	 * Removes a specified SaleLineItem from the collection of SaleLineItems
-	 * 
-	 * @param sli
-	 */
-	public void removeSaleLineItem(SaleLineItem sli) {
-		saleLineItems.remove(sli);
-	}
+    /**
+     * Adds a line item to this sale and back-links it.
+     *
+     * @param sli the line item to add
+     */
+    public void addSaleLineItem(SaleLineItem sli) {
+        sli.setSale(this);
+        saleLineItems.add(sli);
+    }
 
-	public ArrayList<SaleLineItem> getSaleLineItems() {
-		return saleLineItems;
-	}
+    /**
+     * Removes a line item from this sale.
+     *
+     * @param sli the line item to remove
+     */
+    public void removeSaleLineItem(SaleLineItem sli) {
+        saleLineItems.remove(sli);
+    }
 
-	/**
-	 * Calculates to Total of a Sale, SubTotal plus Tax
-	 * 
-	 * @return Total owed to the Store by a Customer
-	 */
-	public BigDecimal calcTotal() {
-		return calcSubTotal().add(calcTax().setScale(2, RoundingMode.HALF_UP));
-	}
+    public List<SaleLineItem> getSaleLineItems() {
+        return saleLineItems;
+    }
 
-	/**
-	 * Calculates the SubTotal for all Items in a Sale
-	 * 
-	 * @return How much each Item costs before Tax
-	 */
-	public BigDecimal calcSubTotal() {
-		BigDecimal result = new BigDecimal(0);
-		for (SaleLineItem s : saleLineItems) {
-			result = result.add(s.calcSubTotal());
-		}
+    public List<Payment> getPayments() {
+        return payments;
+    }
 
-		return result;
-	}
+    /**
+     * @return the sale total (subtotal plus tax), to cents
+     */
+    public BigDecimal calcTotal() {
+        return calcSubTotal().add(calcTax()).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-	/**
-	 * Calculates the Tax for a Sale
-	 * 
-	 * @return Tax for all items in a Sale
-	 */
-	public BigDecimal calcTax() {
-		BigDecimal result = new BigDecimal(0);
-		if (!taxFree) {
-			for (SaleLineItem s : saleLineItems) {
-				result = result.add(s.calcTax().setScale(2, RoundingMode.HALF_UP));
-			}
-		}
+    /**
+     * @return the sum of all line-item subtotals, to cents
+     */
+    public BigDecimal calcSubTotal() {
+        BigDecimal result = BigDecimal.ZERO;
+        for (SaleLineItem s : saleLineItems) {
+            result = result.add(s.calcSubTotal());
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-		return result;
-	}
+    /**
+     * @return the total tax for the sale (zero if tax-exempt), to cents
+     */
+    public BigDecimal calcTax() {
+        BigDecimal result = BigDecimal.ZERO;
+        if (!taxFree) {
+            for (SaleLineItem s : saleLineItems) {
+                result = result.add(s.calcTax());
+            }
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-	/**
-	 * Gets the total Payments made by a Customer in a Sale
-	 * 
-	 * @return Total payments made by a Customer in a Sale
-	 */
-	public BigDecimal getTotalPayments() {
-		BigDecimal result = new BigDecimal(0);
+    /**
+     * @return the total amount tendered across all payments, to cents
+     */
+    public BigDecimal getTotalPayments() {
+        BigDecimal result = BigDecimal.ZERO;
+        for (Payment p : payments) {
+            result = result.add(p.getAmtTendered());
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-		for (Payment p : payments) {
-			result = result.add(p.getAmtTendered());
-		}
+    /**
+     * @return whether the amount tendered covers the sale total
+     */
+    public boolean isPaymentEnough() {
+        return getTotalPayments().compareTo(calcTotal()) >= 0;
+    }
 
-		return result.setScale(2, RoundingMode.HALF_UP);
-	}
+    /**
+     * Calculates how much of a tendered amount to apply to the remaining balance (capped at the
+     * balance, so overpayment becomes change rather than an applied amount).
+     *
+     * @param amtTendered the amount offered
+     * @return the amount actually applied, to cents
+     */
+    public BigDecimal calcAmount(BigDecimal amtTendered) {
+        BigDecimal remaining = calcTotal().subtract(getTotalPayments());
+        if (remaining.signum() < 0) {
+            remaining = BigDecimal.ZERO; // already overpaid: nothing left to apply
+        }
+        BigDecimal result = remaining.compareTo(amtTendered) > 0 ? amtTendered : remaining;
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-	public ArrayList<Payment> getPayments() {
-		return payments;
-	}
+    /**
+     * @return change owed to the customer (tendered minus total), to cents; never negative
+     */
+    public BigDecimal calcChange() {
+        BigDecimal change = getTotalPayments().subtract(calcTotal());
+        if (change.signum() < 0) {
+            change = BigDecimal.ZERO;
+        }
+        return change.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-	/**
-	 * Determines whether there was enough payment for the whole sale
-	 * 
-	 * @return True, payment is enough. False, Payment is NOT enough
-	 */
-	public Boolean isPaymentEnough() {
-		Boolean result = false;
+    /**
+     * @return total amount tendered across payments (unrounded sum), to cents
+     */
+    public BigDecimal calcAmtTendered() {
+        return getTotalPayments();
+    }
 
-		if (this.getTotalPayments().compareTo(this.calcTotal()) >= 0) {
-			result = true;
-		}
+    /**
+     * @return the sum of the applied amounts across payments, to cents
+     */
+    public BigDecimal calcAmount() {
+        BigDecimal result = BigDecimal.ZERO;
+        for (Payment p : payments) {
+            result = result.add(p.getAmount());
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-		return result;
-	}
-
-	/**
-	 * Calculates the amount to charge the customer.
-	 * 
-	 * @param amtTendered Money to subtract from the total.
-	 */
-	public BigDecimal calcAmount(BigDecimal amtTendered) {
-		BigDecimal result = calcTotal().subtract(getTotalPayments());
-		if (result.compareTo(amtTendered) > 0) {
-			result = amtTendered;
-		}
-
-		return result.setScale(2, RoundingMode.HALF_UP);
-	}
-
-	/**
-	 * Calculates the amount of money owed to the Customer, if any
-	 * 
-	 * @return Amount of money to give back to the Customer
-	 */
-	public BigDecimal calcChange() {
-		BigDecimal result = new BigDecimal(0);
-		result = getTotalPayments().subtract(calcTotal());
-
-		return result;
-	}
-
-	/**
-	 * Calculates the amount of money given by a Customer in a Sale
-	 * 
-	 * @return the amount tendered during the sale
-	 */
-	public BigDecimal calcAmtTendered() {
-		BigDecimal result = new BigDecimal(0);
-
-		for (Payment p : payments) {
-			result = result.add(p.getAmtTendered());
-		}
-
-		return result;
-	}
-
-	public BigDecimal calcAmount() {
-		BigDecimal result = new BigDecimal(0);
-
-		for (Payment p : payments) {
-			result = result.add(p.getAmount());
-		}
-
-		return result;
-	}
-
-	/**
-	 * Makes a string representation of a Sale
-	 * 
-	 * @return String representation of a Sale
-	 */
-	public String toString() {
-		String result = new String("\nSale: ");
-
-		result += "\n  SubTotal: " + this.calcSubTotal().toString() + " Tax: " + this.calcTax().toString()
-				+ " Total: " + this.calcTotal().toString() + "\n  Payment: " + this.getTotalPayments().toString()
-				+ " Change: " + this.calcChange().toString();
-
-		for (SaleLineItem s : saleLineItems) {
-			result += s.toString();
-		}
-
-		return result;
-	}
-
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder("\nSale: ");
+        result.append("\n  SubTotal: ")
+                .append(calcSubTotal())
+                .append(" Tax: ")
+                .append(calcTax())
+                .append(" Total: ")
+                .append(calcTotal())
+                .append("\n  Payment: ")
+                .append(getTotalPayments())
+                .append(" Change: ")
+                .append(calcChange());
+        for (SaleLineItem s : saleLineItems) {
+            result.append(s.toString());
+        }
+        return result.toString();
+    }
 }

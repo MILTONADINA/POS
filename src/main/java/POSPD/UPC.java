@@ -1,72 +1,73 @@
 package POSPD;
 
-/**
- * Representation of a Universal Price Code of an item
- */
-public class UPC implements Comparable<UPC>
-{
+import java.util.Objects;
 
-	/**
-	 * Universal Price Code
-	 */
-	private String uPC;
-	
-	/**
-	 * Item that "belongs" to the Universal Price Code
-	 */
-	private Item item;
-	
-	public String getUPC()
-	{
-		return uPC;
-	}
-	
-	public void setUPC(String upc)
-	{
-		uPC = upc;
-	}
-	
-	public void setItem(Item item)
-	{
-		this.item = item;
-	}
-	
-	/**
-	 * Default constructor for a UPC
-	 */
-	public UPC() 
-	{
-		uPC = "";
-	}
+/** A Universal Product Code that resolves to an {@link Item}. */
+public class UPC implements Comparable<UPC> {
 
-	/**
-	 * Constructor for a UPC that takes a UPC
-	 * @param upc UPC to initialize the UPC's UPC attribute
-	 */
-	public UPC(String upc, Item item) 
-	{
-		uPC = upc;
-		this.item = item;
-		this.item.addUPC(this);
-	}
+    /** The UPC code. */
+    private String uPC;
 
-	/**
-	 * Makes a representation of a UPC as a String
-	 * @return String form of a UPC
-	 */
-	public String toString() 
-	{
-		return new String(uPC);
-	}
-	
-	public Boolean isUsed()
-	{
-		return false;
-	}
+    /** The item this code identifies. */
+    private Item item;
 
-	@Override
-	public int compareTo(UPC upc)
-	{
-		return this.getUPC().compareTo(upc.getUPC());
-	}
+    /** Creates an empty UPC. */
+    public UPC() {
+        uPC = "";
+    }
+
+    /**
+     * Creates a UPC bound to an item and registers itself with that item.
+     *
+     * @param upc the UPC code
+     * @param item the item this code identifies
+     */
+    public UPC(String upc, Item item) {
+        uPC = upc;
+        this.item = item;
+        this.item.addUPC(this);
+    }
+
+    public String getUPC() {
+        return uPC;
+    }
+
+    public void setUPC(String upc) {
+        uPC = upc;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    @Override
+    public String toString() {
+        return uPC;
+    }
+
+    /** UPCs are not referenced by historical records, so they may always be deleted. */
+    public boolean isUsed() {
+        return false;
+    }
+
+    @Override
+    public int compareTo(UPC upc) {
+        return this.getUPC().compareTo(upc.getUPC());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        return Objects.equals(uPC, ((UPC) o).uPC);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(uPC);
+    }
 }
