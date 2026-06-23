@@ -40,7 +40,8 @@ The project deliberately demonstrates several defensive practices in its domain 
   swallowed, so callers can react (for example, warn that a sale was not saved).
 - Runtime data is written to a configurable path (`pos.data.file`, defaulting to
   `~/.pos/StoreData_v2024FA.csv`) and never to the source tree; the bundled seed is read from the
-  classpath only as a read-only fallback.
+  classpath only as a read-only fallback. Application logs roll to `~/.pos/logs/pos-N.log`, so
+  failures and warnings persist even when the jar is launched without a console.
 - Writes are **atomic** (write to a temp file, then atomic rename), so a crash or full disk mid-save
   can never truncate the live data file; a file that is present but unparseable is **rejected**
   rather than silently loaded as empty (which a later save would have overwritten).

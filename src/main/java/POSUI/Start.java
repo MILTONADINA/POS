@@ -4,8 +4,13 @@ import POSDM.CsvStoreRepository;
 import POSDM.StoreRepository;
 import POSPD.StoreService;
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.swing.JOptionPane;
 
 /**
@@ -16,6 +21,8 @@ public class Start {
     private static final Logger LOG = Logger.getLogger(Start.class.getName());
 
     public static void main(String[] args) {
+        configureFileLogging();
+
         // Backstop: surface any otherwise-uncaught exception (including on the EDT) to the user
         // instead of letting it vanish to stderr in a deployed GUI.
         Thread.setDefaultUncaughtExceptionHandler(
@@ -29,6 +36,24 @@ public class Start {
         } catch (RuntimeException e) {
             reportFatal("The application could not start", e);
             System.exit(1);
+        }
+    }
+
+    /**
+     * Attaches a rolling file handler so logs persist for a console-less (double-clicked) jar.
+     * Writes to {@code ~/.pos/logs/pos-N.log}; a failure to open the file degrades to console only
+     * and never blocks startup. The default console handler is left in place for development runs.
+     */
+    private static void configureFileLogging() {
+        try {
+            Path logDir = Path.of(System.getProperty("user.home"), ".pos", "logs");
+            Files.createDirectories(logDir);
+            FileHandler fileHandler =
+                    new FileHandler(logDir.resolve("pos-%g.log").toString(), 1_000_000, 3, true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            Logger.getLogger("").addHandler(fileHandler);
+        } catch (IOException | SecurityException e) {
+            LOG.log(Level.WARNING, "Could not set up file logging; logging to console only", e);
         }
     }
 

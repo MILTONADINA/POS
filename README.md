@@ -116,6 +116,9 @@ written to a configurable location — the `pos.data.file` system property, defa
 java -Dpos.data.file=/path/to/store.csv -jar target/point-of-sale-1.0.0.jar
 ```
 
+Application logs are written to a rolling file at `~/.pos/logs/pos-N.log` (so diagnostics survive even
+when the app is launched by double-clicking the jar, with no console attached).
+
 ## Demo credentials
 
 At the login screen:
