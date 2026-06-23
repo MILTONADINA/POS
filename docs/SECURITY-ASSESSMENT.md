@@ -127,8 +127,8 @@ scope/ethics grounds.
 - **SAST** — Semgrep (124 rules across `p/java`, `p/security-audit`, `p/secrets`): **0 findings**.
   SpotBugs + find-sec-bugs (build gate): **0 bugs**. CodeQL `security-extended` (CI): **0 alerts**.
 - **SCA** — Trivy over the dependency set (sole runtime dependency: **LGoodDatePicker**; JUnit and
-  spotbugs-annotations are test/provided): **0 HIGH/CRITICAL CVEs**. OWASP Dependency-Check runs as
-  an advisory CI job.
+  spotbugs-annotations are test/provided): **0 HIGH/CRITICAL CVEs**, enforced in CI. Dependabot
+  watches for new dependency and GitHub Actions updates.
 - **Secrets** — gitleaks across the working tree: **0 leaks**. Bundled seed data is synthetic
   (non-issuable SSNs, `555` phone numbers, a single *masked* card record).
 - **Credential storage** — salted PBKDF2-HMAC-SHA256 @ 600,000 iterations, PHC-encoded, constant-time
@@ -156,4 +156,4 @@ semgrep scan --config p/java --config p/security-audit --config p/secrets src/
 ```
 
 See [SECURITY.md](../SECURITY.md) for the threat model and the standing CI security pipeline
-(CodeQL, Semgrep, Trivy, gitleaks, OWASP Dependency-Check, Dependabot).
+(CodeQL, Semgrep, Trivy, gitleaks, Dependabot).

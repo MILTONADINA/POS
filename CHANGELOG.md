@@ -21,8 +21,8 @@ layered application.
 - Confirmed all bundled seed data is **synthetic** (non-issuable SSNs, fictional `555` phone numbers,
   a masked demo card and check account).
 - Added an **empirically-verified security pipeline** (`.github/workflows/security.yml`): CodeQL,
-  Semgrep, Trivy, gitleaks, advisory OWASP Dependency-Check, plus **find-sec-bugs** in the `mvn verify`
-  gate and **Dependabot** — currently a zero-finding pass.
+  Semgrep, Trivy, and gitleaks, plus **find-sec-bugs** in the `mvn verify` gate and **Dependabot** —
+  currently a zero-finding pass.
 
 ### Fixed / correctness
 - Corrected **date-based price selection** so promotional prices apply only within their window and

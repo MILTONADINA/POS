@@ -201,9 +201,9 @@ masked to the last four digits and never written to disk. The bundled data is en
 this project is an educational demo that must not handle real cardholder data.
 
 Security is verified empirically, not assumed: a dedicated [security workflow](.github/workflows/security.yml)
-runs **CodeQL**, **Semgrep**, **Trivy** + **OWASP Dependency-Check**, and **gitleaks** on every push,
-complemented by **find-sec-bugs** in the `mvn verify` build gate (CI) and **Dependabot** watching
-dependencies — currently a clean, zero-finding pass. Full details, the threat model, and how to report a
+runs **CodeQL**, **Semgrep**, **Trivy**, and **gitleaks** on every push, complemented by
+**find-sec-bugs** in the `mvn verify` build gate (CI) and **Dependabot** watching dependencies —
+currently a clean, zero-finding pass. Full details, the threat model, and how to report a
 vulnerability are in [SECURITY.md](SECURITY.md).
 
 ## License

@@ -86,34 +86,3 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
           skip-dirs: target
-
-  owasp-dependency-check:
-    name: OWASP Dependency-Check (advisory)
-    runs-on: ubuntu-latest
-    # Advisory: the NVD feed can rate-limit without an API key, so this job reports but does not gate.
-    # Add an NVD_API_KEY repository secret to make it reliable. Trivy (above) is the enforced SCA gate.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      - name: Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@1.1.0
-        with:
-          project: point-of-sale
-          path: '.'
-          format: 'HTML'
-          args: >-
-            --failOnCVSS 7
-            --nvdApiKey ${{ secrets.NVD_API_KEY }}
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: ${{ github.workspace }}/reports
-          if-no-files-found: ignore

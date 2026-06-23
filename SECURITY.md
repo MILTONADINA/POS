@@ -68,7 +68,7 @@ on every push and pull request, and weekly on a schedule; they can all be run lo
 |-------|------|----------------|
 | SAST (Java) | **CodeQL** (`security-extended`) + **find-sec-bugs** (SpotBugs plugin, in `mvn verify`) | injection, crypto misuse, path traversal, unsafe deserialization, weak randomness |
 | SAST (rules) | **Semgrep** (`p/java`, `p/security-audit`, `p/secrets`) | OWASP-style code patterns |
-| Dependencies (SCA) | **Trivy** (enforced) + **OWASP Dependency-Check** (advisory) | known CVEs in third-party libraries |
+| Dependencies (SCA) | **Trivy** (enforced) | known CVEs in third-party libraries |
 | Secrets | **gitleaks** | committed credentials/keys |
 | Supply chain | **Dependabot** | outdated/vulnerable dependencies and actions |
 
