@@ -45,7 +45,9 @@ public class POSEndSessionPanel extends JPanel {
 
         BigDecimal totalCash = new BigDecimal(0);
         for (Sale s : session.getSales()) {
-            totalCash = totalCash.add(s.getTotalPayments());
+            // Net cash taken in (cash tendered minus change paid out), matching the drawer — not
+            // gross takings across all tenders, which would overstate the "Cash" figure.
+            totalCash = totalCash.add(s.calcCashIn().subtract(s.calcCashChange()));
         }
 
         textField_1 = new JTextField(totalCash.toString());

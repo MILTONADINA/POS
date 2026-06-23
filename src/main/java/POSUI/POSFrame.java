@@ -43,8 +43,10 @@ public class POSFrame extends JFrame {
                         frame.setVisible(true);
                     } catch (RuntimeException e) {
                         // Route through the shared, headless-safe handler so a dialog failure here
-                        // can never re-enter the uncaught-exception handler.
+                        // can never re-enter the uncaught-exception handler, then exit non-zero so
+                        // the failure is observable to a launcher (consistent with Start.main).
                         Start.reportFatal("Failed to construct the main window", e);
+                        System.exit(1);
                     }
                 });
     }

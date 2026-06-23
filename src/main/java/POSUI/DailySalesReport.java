@@ -78,12 +78,16 @@ public class DailySalesReport extends JPanel {
                                     totNumItems += sa.getSaleLineItems().size();
 
                                     for (Payment p : sa.getPayments()) {
+                                        // Use the applied amount, not the gross tendered: for cash
+                                        // this excludes change paid back, so the columns reflect
+                                        // money actually taken in (matching the drawer/cashier
+                                        // report).
                                         if (p instanceof Cash) {
-                                            cash = cash.add(p.getAmtTendered());
+                                            cash = cash.add(p.getAmount());
                                         } else if (p instanceof Check) {
-                                            check = check.add(p.getAmtTendered());
+                                            check = check.add(p.getAmount());
                                         } else if (p instanceof Credit) {
-                                            credit = credit.add(p.getAmtTendered());
+                                            credit = credit.add(p.getAmount());
                                         }
                                     }
                                 }
