@@ -336,6 +336,28 @@ class PersistenceRoundTripTest {
     }
 
     @Test
+    @DisplayName("a tax-category line with a non-numeric rate leaves no phantom category")
+    void malformedTaxRateLeavesNoPhantomCategory(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("store.csv");
+        Files.writeString(
+                file,
+                String.join(
+                                "\n",
+                                "Store,Mart",
+                                "TaxCategory,Food,0.07,1/1/24",
+                                "TaxCategory,Snacks,NOTANUMBER,1/1/24", // bad rate -> whole line
+                                // skipped
+                                "Item,1,Chips,Snacks", // references the absent Snacks -> skipped
+                                "Item,2,Bread,Food")
+                        + "\n");
+        Store loaded = new CsvStoreRepository(file).load();
+        assertNull(loaded.getTaxCategories().get("Snacks"), "no phantom empty category");
+        assertNull(loaded.findItemForNumber("1"), "item referencing the bad category is skipped");
+        assertNotNull(loaded.findItemForNumber("2"));
+        assertEquals(1, loaded.getItems().size());
+    }
+
+    @Test
     @DisplayName("the bundled seed loads from the classpath when no data file exists")
     void seedLoadsFromClasspath(@TempDir Path dir) {
         // Point at a non-existent file so the repository falls back to the bundled seed resource.

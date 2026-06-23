@@ -270,12 +270,17 @@ public class CsvStoreRepository implements StoreRepository {
 
     private void parseTaxCategory(String[] f, int lineNo, Store store) {
         require(f, 4, lineNo);
+        // Build the rate first so a non-numeric rate (or bad date) throws BEFORE any store
+        // mutation,
+        // leaving no phantom empty category behind — consistent with the other branches' "construct
+        // fully, attach only on success" discipline.
+        TaxRate rate = new TaxRate(f[3], f[2]);
         TaxCategory category = store.getTaxCategory(f[1]);
         if (category == null) {
             category = new TaxCategory(f[1]);
             store.addTaxCategory(category);
         }
-        category.addTaxRate(new TaxRate(f[3], f[2]));
+        category.addTaxRate(rate);
     }
 
     private Cashier cashierFrom(String[] f) {
