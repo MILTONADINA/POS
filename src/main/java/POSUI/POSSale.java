@@ -228,7 +228,7 @@ public class POSSale extends JPanel {
                         // cannot
                         // drift from the persisted sale.
                         session.getRegister().getCashDrawer().addCash(sale.calcCashIn());
-                        session.getRegister().getCashDrawer().removeCash(sale.calcChange());
+                        session.getRegister().getCashDrawer().removeCash(sale.calcCashChange());
                         currentFrame.getContentPane().removeAll();
                         currentFrame
                                 .getContentPane()

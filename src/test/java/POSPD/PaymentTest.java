@@ -64,6 +64,26 @@ class PaymentTest {
     }
 
     @Test
+    @DisplayName(
+            "cash change comes only from cash over-tender; a non-cash over-tender drains nothing")
+    void calcCashChangeIsCashOnly() {
+        // Cash: applied 3.00, tendered 5.00 -> 2.00 cash change.
+        Sale cashSale = new Sale("false");
+        cashSale.addPayment(new Cash("3.00", "5.00"));
+        assertEquals(0, new BigDecimal("2.00").compareTo(cashSale.calcCashChange()));
+
+        // A card with tendered > applied must NOT produce cash change (regression: it used to drain
+        // the drawer because change-out summed all tenders).
+        Sale cardSale = new Sale("false");
+        Credit credit = new Credit("VISA", "4111111111111111", "1/1/2030");
+        credit.setAmount("10.00");
+        credit.setAmtTendered("15.00");
+        cardSale.addPayment(credit);
+        assertEquals(0, BigDecimal.ZERO.compareTo(cardSale.calcCashChange()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(cardSale.calcCashIn()));
+    }
+
+    @Test
     @DisplayName("simulated authorization is deterministic when the RNG is injected")
     void deterministicAuthorization() {
         Credit approve = new Credit();

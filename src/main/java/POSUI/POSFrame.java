@@ -54,7 +54,8 @@ public class POSFrame extends JFrame {
         JFrame currentFrame = this;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("Point of Sale");
+        String version = getClass().getPackage().getImplementationVersion();
+        setTitle("Point of Sale" + (version != null ? " v" + version : ""));
         setSize(800, 600);
         setLocationRelativeTo(null);
         loadIcon();

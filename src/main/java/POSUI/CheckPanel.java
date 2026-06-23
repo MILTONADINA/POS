@@ -96,8 +96,11 @@ public class CheckPanel extends JPanel {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
-                        check.setAmtTendered(tendered);
-                        check.setAmount(sale.calcAmount(tendered));
+                        // A check is recorded for its exact applied amount (capped at the balance);
+                        // there is no cash-style over-tender, so tendered == applied.
+                        BigDecimal applied = sale.calcAmount(tendered);
+                        check.setAmount(applied);
+                        check.setAmtTendered(applied);
                         check.setRoutingNumber(textField_1.getText());
                         check.setAccountNumber(textField_2.getText());
                         check.setCheckNumber(textField_3.getText());

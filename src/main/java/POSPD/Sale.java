@@ -170,6 +170,27 @@ public class Sale {
     }
 
     /**
+     * Returns the change paid out in cash — the over-tender on cash payments only (tendered minus
+     * applied, per cash payment). Credit/check tenders are charged their exact applied amount and
+     * so never produce cash change. This is what leaves the drawer; the customer-facing {@link
+     * #calcChange()} is for display only, so the two must not be conflated for the register.
+     *
+     * @return the cash change paid out, to cents; never negative
+     */
+    public BigDecimal calcCashChange() {
+        BigDecimal result = BigDecimal.ZERO;
+        for (Payment p : payments) {
+            if (p.countsAsCash()) {
+                result = result.add(p.getAmtTendered().subtract(p.getAmount()));
+            }
+        }
+        if (result.signum() < 0) {
+            result = BigDecimal.ZERO;
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
      * @return whether the amount tendered covers the sale total
      */
     public boolean isPaymentEnough() {

@@ -68,13 +68,12 @@ on every push and pull request, and weekly on a schedule; they can all be run lo
 | SAST (Java) | **CodeQL** (`security-extended`) + **find-sec-bugs** (SpotBugs plugin, in `mvn verify`) | injection, crypto misuse, path traversal, unsafe deserialization, weak randomness |
 | SAST (rules) | **Semgrep** (`p/java`, `p/security-audit`, `p/secrets`) | OWASP-style code patterns |
 | Dependencies (SCA) | **Trivy** (enforced) + **OWASP Dependency-Check** (advisory) | known CVEs in third-party libraries |
+| Secrets | **gitleaks** | committed credentials/keys |
+| Supply chain | **Dependabot** | outdated/vulnerable dependencies and actions |
 
 The Trivy gate fails the build on HIGH/CRITICAL CVEs that have an available fix (`ignore-unfixed`):
 vulnerabilities with no upstream patch are surfaced in the report but do not block the build, so they
 cannot be silently "fixed" by a version bump that does not exist.
-
-| Secrets | **gitleaks** | committed credentials/keys |
-| Supply chain | **Dependabot** | outdated/vulnerable dependencies and actions |
 
 Local quick-run:
 

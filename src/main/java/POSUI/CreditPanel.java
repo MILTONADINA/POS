@@ -103,9 +103,12 @@ public class CreditPanel extends JPanel {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
+                        // A card is charged its exact applied amount (capped at the balance); there
+                        // is no cash-style over-tender, so tendered == applied (no phantom change).
+                        BigDecimal applied = sale.calcAmount(tendered);
                         credit.setCardType(textField.getText());
-                        credit.setAmtTendered(tendered);
-                        credit.setAmount(sale.calcAmount(tendered));
+                        credit.setAmount(applied);
+                        credit.setAmtTendered(applied);
                         credit.setAcctNumber(textField_2.getText());
                         credit.setExpireDate(expire);
                         sale.addPayment(credit);
