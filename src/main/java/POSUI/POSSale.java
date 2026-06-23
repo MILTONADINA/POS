@@ -222,8 +222,12 @@ public class POSSale extends JPanel {
                                     JOptionPane.ERROR_MESSAGE);
                             return;
                         }
-                        // Update the drawer only after a successful save so it cannot drift.
-                        session.getRegister().getCashDrawer().addCash(sale.getTotalPayments());
+                        // Credit the drawer with cash tendered only (not credit/check tenders),
+                        // then
+                        // pay out any change in cash. Done only after a successful save so it
+                        // cannot
+                        // drift from the persisted sale.
+                        session.getRegister().getCashDrawer().addCash(sale.calcCashIn());
                         session.getRegister().getCashDrawer().removeCash(sale.calcChange());
                         currentFrame.getContentPane().removeAll();
                         currentFrame

@@ -16,6 +16,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
 public class POSFrame extends JFrame {
@@ -28,6 +30,14 @@ public class POSFrame extends JFrame {
     public static void run(StoreService storeService) {
         EventQueue.invokeLater(
                 () -> {
+                    try {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    } catch (ReflectiveOperationException | UnsupportedLookAndFeelException e) {
+                        LOG.log(
+                                Level.WARNING,
+                                "Could not set the system look and feel; using default",
+                                e);
+                    }
                     try {
                         POSFrame frame = new POSFrame(storeService);
                         frame.setVisible(true);

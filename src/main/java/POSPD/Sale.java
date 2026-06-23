@@ -153,6 +153,23 @@ public class Sale {
     }
 
     /**
+     * Returns the cash actually tendered — only payments that {@link Payment#countsAsCash() count
+     * as cash} (so credit/check tenders are excluded). This is what physically enters the drawer,
+     * so it is what the register should be credited with for end-of-session reconciliation.
+     *
+     * @return the cash tendered, to cents
+     */
+    public BigDecimal calcCashIn() {
+        BigDecimal result = BigDecimal.ZERO;
+        for (Payment p : payments) {
+            if (p.countsAsCash()) {
+                result = result.add(p.getAmtTendered());
+            }
+        }
+        return result.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
      * @return whether the amount tendered covers the sale total
      */
     public boolean isPaymentEnough() {

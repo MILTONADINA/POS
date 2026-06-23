@@ -15,7 +15,7 @@ public class POSHome extends JPanel {
 
         JLabel lblNewLabel = new JLabel(storeService.getStore().getName());
         lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        lblNewLabel.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 16));
+        lblNewLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         lblNewLabel.setBounds(12, 203, 776, 22);
         add(lblNewLabel);
     }

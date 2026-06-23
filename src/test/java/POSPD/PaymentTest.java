@@ -50,6 +50,20 @@ class PaymentTest {
     }
 
     @Test
+    @DisplayName("calcCashIn counts only cash tenders, while getTotalPayments counts all")
+    void calcCashInExcludesNonCash() {
+        Sale sale = new Sale("false");
+        sale.addPayment(new Cash("3.00", "5.00")); // $5 cash physically in the drawer
+        Credit credit = new Credit("VISA", "4111111111111111", "1/1/2030");
+        credit.setAmtTendered("7.00");
+        sale.addPayment(credit);
+        Check check = new Check("2.00", "2.00", "111", "1001");
+        sale.addPayment(check);
+        assertEquals(0, new BigDecimal("5.00").compareTo(sale.calcCashIn()));
+        assertEquals(0, new BigDecimal("14.00").compareTo(sale.getTotalPayments()));
+    }
+
+    @Test
     @DisplayName("simulated authorization is deterministic when the RNG is injected")
     void deterministicAuthorization() {
         Credit approve = new Credit();
