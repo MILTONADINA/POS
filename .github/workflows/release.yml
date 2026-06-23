@@ -1,0 +1,36 @@
+name: Release
+
+# When a version tag (vX.Y.Z) is pushed, build the runnable jar on JDK 17 and attach it,
+# with a SHA-256 checksum, to the corresponding GitHub release so the published release always
+# carries a downloadable, double-clickable artifact (not just source tarballs).
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and attach runnable jar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Build runnable jar
+        run: mvn -B clean verify
+      - name: Generate SHA-256 checksum
+        run: cd target && sha256sum point-of-sale-*.jar > checksums.txt
+      - name: Attach artifacts to the release
+        uses: softprops/action-gh-release@v2.6.2
+        with:
+          files: |
+            target/point-of-sale-*.jar
+            target/checksums.txt
+          fail_on_unmatched_files: true

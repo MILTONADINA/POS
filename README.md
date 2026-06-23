@@ -83,6 +83,19 @@ storage technology.
   implementation. The concrete store is injected into `StoreService`, so the service is decoupled from
   storage and can run against an in-memory fake in tests.
 
+## Download & run
+
+No build tools required — grab the runnable jar from the
+[latest release](https://github.com/MILTONADINA/POS/releases/latest) and launch it with **JDK 17 or
+newer** installed:
+
+```bash
+java -jar point-of-sale-1.0.0.jar
+```
+
+Each release ships the jar alongside a `checksums.txt` (SHA-256) so the download can be verified.
+Prefer to build from source? See below.
+
 ## Build & Run
 
 Requires **Maven** and **JDK 17** to build. The full quality gate (Spotless's Google Java Format)
