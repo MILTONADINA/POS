@@ -66,6 +66,12 @@ public final class PasswordHasher {
      * @param storedHash the encoded hash produced by {@link #hash(String)}
      * @return {@code true} only if the password matches the stored hash
      */
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+            value = "UNSAFE_HASH_EQUALS",
+            justification =
+                    "equals() here compares only the public algorithm-identifier prefix"
+                            + " (\"pbkdf2_sha256\"), not the secret digest. The secret is compared in"
+                            + " constant time via MessageDigest.isEqual, so there is no timing oracle.")
     public static boolean verify(String password, String storedHash) {
         if (password == null || password.isEmpty() || storedHash == null) {
             return false;
@@ -97,6 +103,10 @@ public final class PasswordHasher {
      * @return {@code true} if the value is not in the current format or is below the current
      *     iteration count
      */
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+            value = "UNSAFE_HASH_EQUALS",
+            justification =
+                    "Compares only the public algorithm-identifier prefix; no secret is compared.")
     public static boolean needsRehash(String storedHash) {
         if (storedHash == null) {
             return true;

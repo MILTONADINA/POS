@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Keep Maven dependencies and plugins patched (supply-chain hygiene).
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+  # Keep GitHub Actions pinned versions current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - ci

@@ -68,7 +68,7 @@ public class POSSale extends JPanel {
         add(lblSale);
 
         JLabel lblRegister = new JLabel("Register: ");
-        lblRegister.setBounds(134, 70, 56, 16);
+        lblRegister.setBounds(134, 70, 70, 16);
         add(lblRegister);
 
         JLabel lblRegnum = new JLabel(session.getRegister().getNumber());
@@ -165,7 +165,7 @@ public class POSSale extends JPanel {
         add(lblTotal);
 
         JLabel lblTendered = new JLabel("Tendered");
-        lblTendered.setBounds(592, 336, 56, 16);
+        lblTendered.setBounds(592, 336, 70, 16);
         add(lblTendered);
 
         JLabel lblChange = new JLabel("Change");
