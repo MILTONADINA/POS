@@ -1,122 +1,144 @@
 package POSPD;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
- * Representation of a Price
+ * A dated price for an {@link Item}. Prices are held in a sorted set per item, so the natural
+ * ordering is a <em>total</em> order (effective date, then amount, then promo discriminator) that
+ * is consistent with {@link #equals(Object)} — otherwise two distinct prices that compared equal
+ * would be silently dropped by the set.
  */
 public class Price implements Comparable<Price> {
 
-	/**
-	 * How much an item costs
-	 */
-	private BigDecimal price;
-	/**
-	 * When the Price will be used in Sales
-	 */
-	private LocalDate effectiveDate;
-	/**
-	 * Item that price refers to
-	 */
-	private Item item;
+    /** Money scale used for all computed amounts (cents). */
+    static final int MONEY_SCALE = 2;
 
-	public BigDecimal getPrice() {
-		return this.price;
-	}
+    /** The unit price. */
+    private BigDecimal price;
 
-	public void setPrice(BigDecimal price) {
-		this.price = price;
-	}
+    /** The date from which this price takes effect (inclusive). */
+    private LocalDate effectiveDate;
 
-	public LocalDate getEffectiveDate() {
-		return this.effectiveDate;
-	}
+    /** The item this price belongs to. */
+    private Item item;
 
-	public void setEffectiveDate(LocalDate effectiveDate) {
-		this.effectiveDate = effectiveDate;
-	}
+    /** Creates a zero price effective at the sentinel date {@code 1/1/1111}. */
+    public Price() {
+        price = BigDecimal.ZERO;
+        effectiveDate = DateUtils.parseDate("1/1/1111");
+    }
 
-	public Item getItem() {
-		return this.item;
-	}
+    /**
+     * Creates a price from string inputs (as read from persistence).
+     *
+     * @param price the unit price
+     * @param effectiveDate the effective date in {@code M/d/yyyy} or {@code M/d/yy} form
+     */
+    public Price(String price, String effectiveDate) {
+        this.price = new BigDecimal(price);
+        this.effectiveDate = DateUtils.parseDate(effectiveDate);
+    }
 
-	public void setItem(Item item) {
-		this.item = item;
-	}
+    public BigDecimal getPrice() {
+        return this.price;
+    }
 
-	/**
-	 * Default Constructor for a Price
-	 */
-	public Price() {
-		price = new BigDecimal(0);
-		effectiveDate = DateUtils.parseDate("1/1/1111");
-	}
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
 
-	/**
-	 * Constructor for a Price that sets price to price, and effectiveDate to
-	 * effectiveDate
-	 * 
-	 * @param price         How much an item costs
-	 * @param effectiveDate When the cost of an item will take effect
-	 */
-	public Price(String price, String effectiveDate) {
-		this();
-		this.price = new BigDecimal(price);
-		this.effectiveDate = DateUtils.parseDate(effectiveDate);
-	}
+    public LocalDate getEffectiveDate() {
+        return this.effectiveDate;
+    }
 
-	/**
-	 * Determines whether a price if effective or not
-	 * 
-	 * @param date Date to check against to determine whether a price is effective
-	 * @return True, price is effective. False, price is NOT effective
-	 */
-	public Boolean isEffective(LocalDate date) {
-		Boolean result = false;
-		if (this.effectiveDate.isBefore(date) || this.effectiveDate.equals(date))
-			result = true;
+    public void setEffectiveDate(LocalDate effectiveDate) {
+        this.effectiveDate = effectiveDate;
+    }
 
-		return result;
-	}
+    public Item getItem() {
+        return this.item;
+    }
 
-	/**
-	 * Calculates how much money to charge a Customer for a quantity of Items
-	 * 
-	 * @param quantity Number of Items to calculate Prices for
-	 * @return Amount of money to charge for the quantity given
-	 */
-	public BigDecimal calcAmountForQty(int quantity) {
-		BigDecimal result;
+    public void setItem(Item item) {
+        this.item = item;
+    }
 
-		result = price.multiply(new BigDecimal(quantity));
+    /**
+     * Returns whether this price is in effect on the given date (effective date inclusive).
+     *
+     * @param date the date to test
+     * @return {@code true} if {@code date} is on or after the effective date
+     */
+    public boolean isEffective(LocalDate date) {
+        return !date.isBefore(effectiveDate);
+    }
 
-		return result;
-	}
+    /**
+     * Calculates the charge for a quantity of items, normalized to cents.
+     *
+     * @param quantity the number of items
+     * @return {@code price * quantity} rounded HALF_UP to 2 decimal places
+     */
+    public BigDecimal calcAmountForQty(int quantity) {
+        return price.multiply(BigDecimal.valueOf(quantity))
+                .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
-	/**
-	 * Compares one Price to another Price
-	 * 
-	 * @param price Price to compare to this.Price
-	 * @return 0 means numbers are the same, negative means parameter is bigger,
-	 *         positive means parameter is smaller
-	 */
-	public int compareTo(Price price) {
-		return this.effectiveDate.compareTo(price.effectiveDate);
-	}
+    /**
+     * Total ordering consistent with {@link #equals}: by effective date, then amount, then a
+     * regular-before-promo discriminator, then (for promos) end date.
+     */
+    @Override
+    public int compareTo(Price other) {
+        int cmp = this.effectiveDate.compareTo(other.effectiveDate);
+        if (cmp != 0) {
+            return cmp;
+        }
+        cmp = this.price.compareTo(other.price);
+        if (cmp != 0) {
+            return cmp;
+        }
+        boolean thisPromo = this instanceof PromoPrice;
+        boolean otherPromo = other instanceof PromoPrice;
+        if (thisPromo != otherPromo) {
+            return thisPromo
+                    ? 1
+                    : -1; // a regular price sorts before a promo with the same date/amount
+        }
+        if (thisPromo) {
+            return ((PromoPrice) this).getEndDate().compareTo(((PromoPrice) other).getEndDate());
+        }
+        return 0;
+    }
 
-	/**
-	 * Makes a string representation of a Price
-	 * 
-	 * @return String representation of a Price
-	 */
-	public String toString() {
-		return new String(price.toString() + " " + effectiveDate.format(DateTimeFormatter.ofPattern("M/d/yyyy")));
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Price other = (Price) o;
+        return Objects.equals(effectiveDate, other.effectiveDate)
+                && price.compareTo(other.price) == 0;
+    }
 
-	public Boolean isUsed() {
-		return false;
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(effectiveDate, price.stripTrailingZeros());
+    }
 
+    @Override
+    public String toString() {
+        return price.toString() + " " + DateUtils.format(effectiveDate);
+    }
+
+    /** Prices are not referenced by historical records, so they may always be deleted. */
+    public boolean isUsed() {
+        return false;
+    }
 }

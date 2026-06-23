@@ -1,118 +1,102 @@
 package POSPD;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Random;
 
 /**
- * Representation of a Credit card
+ * A credit-card payment. The account number (PAN) is sensitive: {@link #toString()} and {@link
+ * #getMaskedAcctNumber()} expose only the last four digits, and the persistence layer stores the
+ * masked form rather than the full PAN.
  */
-public class Credit extends AuthorizedPayment 
-{
+public class Credit extends AuthorizedPayment {
 
-	/**
-	 * Type of card (Visa, Master Card, etc)
-	 */
-	private String cardType;
-	/**
-	 * Account Number to define what account the card belongs to
-	 */
-	private String acctNumber;
-	/**
-	 * When a card will expire
-	 */
-	private LocalDate expireDate;
+    /** Card brand (e.g. Visa, MC). */
+    private String cardType;
 
-	public String getCardType() 
-	{
-		return this.cardType;
-	}
+    /** Card account number (PAN). */
+    private String acctNumber;
 
-	public void setCardType(String cardType) 
-	{
-		this.cardType = cardType;
-	}
+    /** Card expiry date. */
+    private LocalDate expireDate;
 
-	public String getAcctNumber() 
-	{
-		return this.acctNumber;
-	}
+    /** Creates an empty credit payment with a sentinel expiry. */
+    public Credit() {
+        cardType = "";
+        acctNumber = "";
+        expireDate = DateUtils.parseDate("1/1/1111");
+    }
 
-	public void setAcctNumber(String acctNumber) 
-	{
-		this.acctNumber = acctNumber;
-	}
+    /**
+     * Creates a credit payment from string inputs (as read from persistence).
+     *
+     * @param cardType the card brand
+     * @param acctNumber the account number (may already be masked)
+     * @param expireDate the expiry date in {@code M/d/yyyy} or {@code M/d/yy} form
+     */
+    public Credit(String cardType, String acctNumber, String expireDate) {
+        this();
+        this.cardType = cardType;
+        this.acctNumber = acctNumber;
+        this.expireDate = DateUtils.parseDate(expireDate);
+    }
 
-	public LocalDate getExpireDate() 
-	{
-		return this.expireDate;
-	}
+    public String getCardType() {
+        return this.cardType;
+    }
 
-	public void setExpireDate(LocalDate expireDate) 
-	{
-		this.expireDate = expireDate;
-	}
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
+    }
 
-	/**
-	 * Default constructor for a Credit
-	 */
-	public Credit() 
-	{
-		cardType = "";
-		acctNumber = "";
-		expireDate = LocalDate.parse("1/1/1111", DateTimeFormatter.ofPattern("M/d/yyyy"));
-	}
+    public String getAcctNumber() {
+        return this.acctNumber;
+    }
 
-	/**
-	 * Constructor for a credit that initializes cardType to cardType, acctNumber to acctNumber, and expireDate to expireDate
-	 * @param cardType Type of card (Visa, Master Card, etc)
-	 * @param acctNumber Account Number to define what account the card belongs to
-	 * @param expireDate When a card will expire
-	 */
-	public Credit(String cardType, String acctNumber, String expireDate) 
-	{
-		this();
-		this.cardType = cardType;
-		this.acctNumber = acctNumber;
-		this.expireDate = LocalDate.parse(expireDate, DateTimeFormatter.ofPattern("M/d/yyyy"));
-	}
+    public void setAcctNumber(String acctNumber) {
+        this.acctNumber = acctNumber;
+    }
 
-	/**
-	 * Determines whether or not a card is authorized to pay for a Sale
-	 * @return True, is authorized. False, is not authorized
-	 */
-	public Boolean isAuthorized() 
-	{
-		Random rand = new Random();
-		Boolean result = true;
-		
-		if(rand.nextInt(100) + 1 > 85)
-		{
-			result = false;
-		}
-		
-		return result;
-	}
+    /**
+     * @return the account number with all but the last four digits masked (e.g. {@code
+     *     ********5550})
+     */
+    public String getMaskedAcctNumber() {
+        return maskPan(acctNumber);
+    }
 
-	/**
-	 * Determines whether a Credit payment counts as Cash, usually used for cash back
-	 * @return True, counts as cash. False, does not count as cash
-	 */
-	public Boolean countsAsCash() 
-	{
-		return true;
-	}
+    public LocalDate getExpireDate() {
+        return this.expireDate;
+    }
 
-	
-	/**
-	 * Makes a String representation of a Credit
-	 * @return The String representation of a Credit
-	 */
-	public String toString() 
-	{
-		// TODO - implement Credit.toString
-		throw new UnsupportedOperationException();
-	}
+    public void setExpireDate(LocalDate expireDate) {
+        this.expireDate = expireDate;
+    }
 
+    /**
+     * Masks all but the last four characters of a PAN. Already-masked or short values are returned
+     * unchanged in shape (only trailing digits are ever revealed).
+     */
+    static String maskPan(String pan) {
+        if (pan == null || pan.length() <= 4) {
+            return pan == null ? "" : pan;
+        }
+        int visible = 4;
+        StringBuilder masked = new StringBuilder();
+        for (int i = 0; i < pan.length() - visible; i++) {
+            masked.append('*');
+        }
+        masked.append(pan.substring(pan.length() - visible));
+        return masked.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "Credit "
+                + cardType
+                + " "
+                + getMaskedAcctNumber()
+                + " exp "
+                + DateUtils.format(expireDate)
+                + " amount "
+                + getAmount();
+    }
 }

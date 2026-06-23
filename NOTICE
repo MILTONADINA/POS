@@ -1,0 +1,34 @@
+Java Point-of-Sale System
+Copyright (c) 2026 Milton Adina Shisia
+
+This product is licensed under the MIT License (see the LICENSE file).
+
+This product includes and/or depends on the following third-party software.
+
+-------------------------------------------------------------------------------
+Runtime dependency
+-------------------------------------------------------------------------------
+
+LGoodDatePicker
+  Coordinates: com.github.lgooddatepicker:LGoodDatePicker:11.2.1
+  Source:      Maven Central
+  License:     The MIT License (MIT), as declared in the artifact's POM.
+               See https://github.com/LGoodDatePicker/LGoodDatePicker
+  Notice:      A Swing date-picker component used by the GUI (POSUI). Its classes
+               are bundled into the runnable jar produced by the Maven Shade
+               plugin.
+
+-------------------------------------------------------------------------------
+Build- and test-time dependencies (not distributed at runtime)
+-------------------------------------------------------------------------------
+
+JUnit 5 (JUnit Jupiter)
+  Coordinates: org.junit.jupiter:junit-jupiter:5.10.2
+  License:     Eclipse Public License 2.0 (EPL-2.0)
+  Notice:      Used to compile and run the test suite only (test scope).
+
+JaCoCo
+  Plugin:      org.jacoco:jacoco-maven-plugin
+  License:     Eclipse Public License 2.0 (EPL-2.0)
+  Notice:      Used to measure test coverage during the build. Not included in
+               the distributed artifact.

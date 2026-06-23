@@ -1,102 +1,108 @@
 package POSPD;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.math.RoundingMode;
 
 /**
- * Representation of a SaleLineItem
+ * One line of a {@link Sale}: an {@link Item} and a quantity, with helpers to compute its subtotal
+ * and tax for the sale's date.
  */
 public class SaleLineItem {
 
-	/**
-	 * Item that the SaleLineItem knows
-	 */
-	private Item item;
+    private static final int MONEY_SCALE = 2;
 
-	/**
-	 * Sale that the SaleLineItem
-	 */
-	private Sale sale;
+    /** The item being sold on this line. */
+    private Item item;
 
-	/**
-	 * Quantity of the Item that the SaleLineItem knows
-	 */
-	private int quantity;
+    /** The sale this line belongs to. */
+    private Sale sale;
 
-	public Item getItem() {
-		return this.item;
-	}
+    /** Quantity of the item. */
+    private int quantity;
 
-	public void setItem(Item item) {
-		this.item = item;
-	}
+    /** Creates an empty line item backed by empty item and sale. */
+    public SaleLineItem() {
+        item = new Item();
+        sale = new Sale();
+    }
 
-	public Sale getSale() {
-		return this.sale;
-	}
+    /**
+     * Creates a line item for a sale and adds itself to that sale.
+     *
+     * @param sale the parent sale
+     * @param item the item being sold
+     * @param quantity the quantity
+     */
+    public SaleLineItem(Sale sale, Item item, int quantity) {
+        setQuantity(quantity);
+        setItem(item);
+        sale.addSaleLineItem(this);
+    }
 
-	public void setSale(Sale sale) {
-		this.sale = sale;
-	}
+    /**
+     * Creates a line item by resolving an item number against the store (used by persistence).
+     *
+     * @param itemNumber the item number
+     * @param quantity the quantity as a string
+     * @param store the store to resolve the item from
+     */
+    public SaleLineItem(String itemNumber, String quantity, Store store) {
+        this();
+        this.item = store.findItemForNumber(itemNumber);
+        this.quantity = Integer.parseInt(quantity);
+    }
 
-	public int getQuantity() {
-		return this.quantity;
-	}
+    public Item getItem() {
+        return this.item;
+    }
 
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
-	}
+    public void setItem(Item item) {
+        this.item = item;
+    }
 
-	/**
-	 * Default Constructor for a SaleLineItem
-	 */
-	public SaleLineItem() {
-		item = new Item();
-		sale = new Sale();
-	}
+    public Sale getSale() {
+        return this.sale;
+    }
 
-	/**
-	 * Constructor for a SaleLineItem that sets this.item.itemNumber to itemNumber,
-	 * and quantity to quantity
-	 * 
-	 * @param itemNumber ItemNumber of an Item to set an Item to a specific Item
-	 * @param quantity   Quantity of Items for the SaleLineItem
-	 */
-	public SaleLineItem(Sale sale, Item item, int quantity) {
-		setQuantity(quantity);
-		setItem(item);
-		sale.addSaleLineItem(this);
-	}
+    public void setSale(Sale sale) {
+        this.sale = sale;
+    }
 
-	public SaleLineItem(String itemNumber, String quantity, Store store) {
-		this();
-		this.item = store.findItemForNumber(itemNumber);
-		this.quantity = Integer.parseInt(quantity);
-	}
+    public int getQuantity() {
+        return this.quantity;
+    }
 
-	/**
-	 * Calculates the SubTotal for all items in the receipt
-	 * 
-	 * @return Total Price of all Items in the SaleLineItem
-	 */
-	public BigDecimal calcSubTotal() {
-		return item.calcAmountForDateQty(sale.getDate().toLocalDate(), quantity);
-	}
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 
-	public BigDecimal calcTax() {
-		return this.calcSubTotal().multiply(item.getTaxRate(sale.getDate().toLocalDate())).setScale(2,
-				java.math.RoundingMode.HALF_UP);
-	}
+    /**
+     * @return the price of this line (unit price for the sale date times quantity), to cents
+     */
+    public BigDecimal calcSubTotal() {
+        return item.calcAmountForDateQty(sale.getDate().toLocalDate(), quantity);
+    }
 
-	/**
-	 * Makes a string representation of a SaleLineItem
-	 * 
-	 * @return String representation of a SaleLineItem
-	 */
-	public String toString() {
-		return new String("\n  " + item.getDescription() + " " + item.getNumber() + " " + quantity + " "
-				+ item.getPriceForDate(sale.getDate().toLocalDate()) + " "
-				+ item.getTaxRate(sale.getDate().toLocalDate()).toString());
-	}
+    /**
+     * @return the tax for this line (subtotal times the item's rate for the sale date), to cents
+     */
+    public BigDecimal calcTax() {
+        return calcSubTotal()
+                .multiply(item.getTaxRate(sale.getDate().toLocalDate()))
+                .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
 
+    @Override
+    public String toString() {
+        return "\n  "
+                + item.getDescription()
+                + " "
+                + item.getNumber()
+                + " "
+                + quantity
+                + " "
+                + item.getPriceForDate(sale.getDate().toLocalDate())
+                + " "
+                + item.getTaxRate(sale.getDate().toLocalDate());
+    }
 }

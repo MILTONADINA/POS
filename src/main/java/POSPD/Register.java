@@ -1,103 +1,89 @@
 package POSPD;
 
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A representation of a cash register owned by the company
- */
-public class Register 
-{
+/** A cash register owned by the store, with its cash drawer and session history. */
+public class Register {
 
-	/**
-	 * Identification Number of a Register
-	 */
-	private String number;
-	/**
-	 * The drawer of Cash a Register holds during a Session
-	 */
-	private CashDrawer cashDrawer;
+    /** Register identifier. */
+    private String number;
 
-	private ArrayList<Session> sessions;
-	
-	public String getNumber() 
-	{
-		return this.number;
-	}
+    /** The cash drawer for this register. */
+    private CashDrawer cashDrawer;
 
-	public void setNumber(String number) 
-	{
-		this.number = number;
-	}
+    /** Sessions worked on this register. */
+    private List<Session> sessions;
 
-	public CashDrawer getCashDrawer() 
-	{
-		return this.cashDrawer;
-	}
+    /** Creates an empty register with a fresh cash drawer. */
+    public Register() {
+        number = "";
+        cashDrawer = new CashDrawer();
+        sessions = new ArrayList<>();
+    }
 
-	public void setCashDrawer(CashDrawer cashDrawer) 
-	{
-		this.cashDrawer = cashDrawer;
-	}
+    /**
+     * Creates a register with the given number.
+     *
+     * @param number the register identifier
+     */
+    public Register(String number) {
+        this();
+        this.number = number;
+    }
 
-	/**
-	 * Default constructor of a Register
-	 */
-	public Register() 
-	{
-		number = "";
-		cashDrawer = new CashDrawer();
-		sessions = new ArrayList<Session>();
-	}
-	
-	public Register(String number)
-	{
-		this();
-		this.number = number;
-	}
-	
-	/**
-	 * A constructor for a Register that takes a Number
-	 * @param number Identification Number for a Cash Register
-	 */
-	public Register(String number, CashDrawer cashDrawer) 
-	{
-		this();
-		this.number = number;
-		this.cashDrawer = cashDrawer;
-	}
+    /**
+     * Creates a register with the given number and cash drawer.
+     *
+     * @param number the register identifier
+     * @param cashDrawer the cash drawer
+     */
+    public Register(String number, CashDrawer cashDrawer) {
+        this();
+        this.number = number;
+        this.cashDrawer = cashDrawer;
+    }
 
-	/**
-	 * Makes a String representation of a Register
-	 * @return String representation of a Register
-	 */
-	public String toString() 
-	{
-		return new String(number);
-	}
+    public String getNumber() {
+        return this.number;
+    }
 
-	public ArrayList<Session> getSessions()
-	{
-		return sessions;
-	}
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
-	public void setSessions(ArrayList<Session> sessions)
-	{
-		this.sessions = sessions;
-	}
-	
-	public void addSession(Session session)
-	{
-		sessions.add(session);
-	}
+    public CashDrawer getCashDrawer() {
+        return this.cashDrawer;
+    }
 
-	
-	public Boolean isUsed()
-	{
-		Boolean result = false;
-		if(!sessions.isEmpty())
-		{
-			result = true;
-		}
-		return result;
-	}
+    public void setCashDrawer(CashDrawer cashDrawer) {
+        this.cashDrawer = cashDrawer;
+    }
+
+    public List<Session> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(ArrayList<Session> sessions) {
+        this.sessions = sessions;
+    }
+
+    /**
+     * Adds a session to this register.
+     *
+     * @param session the session to add
+     */
+    public void addSession(Session session) {
+        sessions.add(session);
+    }
+
+    @Override
+    public String toString() {
+        return number;
+    }
+
+    /** Returns whether this register has any recorded sessions. */
+    public boolean isUsed() {
+        return !sessions.isEmpty();
+    }
 }

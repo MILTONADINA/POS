@@ -1,159 +1,160 @@
 package POSPD;
 
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Representation of a Session
+ * A cashier's work session on a register: when it started and ended, and the sales rung during it.
  */
-public class Session 
-{
+public class Session {
 
-	/**
-	 * Cashier of the session
-	 */
-	private Cashier cashier;
-	/**
-	 * Register for a session
-	 */
-	private Register register;
-	/**
-	 * Collection of Sales known by the Session
-	 */
-	private ArrayList<Sale> sales;
-	/**
-	 * When a session started
-	 */
-	private LocalDateTime startDateTime;
-	/**
-	 * When a session ended
-	 */
-	private LocalDateTime endDateTime;
+    /** The cashier working the session. */
+    private Cashier cashier;
 
-	public Cashier getCashier() 
-	{
-		return this.cashier;
-	}
+    /** The register being worked. */
+    private Register register;
 
-	public void setCashier(Cashier cashier) 
-	{
-		this.cashier = cashier;
-	}
+    /** Sales rung during the session. */
+    private List<Sale> sales;
 
-	public Register getRegister() 
-	{
-		return this.register;
-	}
+    /** When the session started. */
+    private LocalDateTime startDateTime;
 
-	public void setRegister(Register register) 
-	{
-		this.register = register;
-	}
+    /** When the session ended (null while active). */
+    private LocalDateTime endDateTime;
 
-	public ArrayList<Sale> getSales()
-	{
-		return sales;
-	}
-	
-	public LocalDateTime getStartDateTime() 
-	{
-		return this.startDateTime;
-	}
+    /** Creates a session starting now with no sales. */
+    public Session() {
+        startDateTime = LocalDateTime.now();
+        sales = new ArrayList<>();
+    }
 
-	public LocalDateTime getEndDateTime() 
-	{
-		return this.endDateTime;
-	}
+    /**
+     * Creates a session by resolving cashier and register numbers against the store (used by
+     * persistence), wiring the back-references.
+     *
+     * @param cashier the cashier number
+     * @param register the register number
+     * @param store the store to resolve against
+     * @throws IllegalArgumentException if the cashier or register cannot be found
+     */
+    public Session(String cashier, String register, Store store) {
+        this();
+        this.cashier = store.findCashierForNumber(cashier);
+        this.register = store.getRegisters().get(register);
+        if (this.cashier == null) {
+            throw new IllegalArgumentException("Unknown cashier number: " + cashier);
+        }
+        if (this.register == null) {
+            throw new IllegalArgumentException("Unknown register number: " + register);
+        }
+        this.cashier.addSession(this);
+        this.register.addSession(this);
+    }
 
-	public void setEndDateTime(LocalDateTime endDateTime) 
-	{
-		this.endDateTime = endDateTime;
-	}
-	
-	public Session()
-	{
-		startDateTime = LocalDateTime.now();
-		sales = new ArrayList<Sale>();
-	}
-	
-	public Session(String cashier, String register, Store store)
-	{
-		this();
-		this.cashier = store.findCashierForNumber(cashier);
-		this.register = store.getRegisters().get(register);
-		this.cashier.addSession(this);
-		this.register.addSession(this);
-	}
-	
-	public Session(Cashier cashier, Register register, Store store)
-	{
-		this();
-		this.cashier = cashier;
-		this.register = register;
-		this.cashier.addSession(this);
-		this.register.addSession(this);
-	}
-	
-	/**
-	 * Constructor for a Session that initializes cashier to cashier, and register to register
-	 * @param cashier Cashier for a Session
-	 * @param register Register for a Session
-	 */
-	public Session(Cashier cashier, Register register) 
-	{
-		this();
-		this.cashier = cashier;
-		this.register = register;
-		this.cashier.addSession(this);
-		this.register.addSession(this);
-	}
+    /**
+     * Creates a session from a known cashier and register, wiring the back-references.
+     *
+     * @param cashier the cashier
+     * @param register the register
+     * @param store unused, retained for call-site compatibility
+     */
+    public Session(Cashier cashier, Register register, Store store) {
+        this(cashier, register);
+    }
 
-	/**
-	 * Adds a Sale to the collection of Sales
-	 * @param sale Sale to add to the collection of Sales
-	 */
-	public void addSale(Sale sale) 
-	{
-		sales.add(sale);
-	}
+    /**
+     * Creates a session from a known cashier and register, wiring the back-references.
+     *
+     * @param cashier the cashier
+     * @param register the register
+     */
+    public Session(Cashier cashier, Register register) {
+        this();
+        this.cashier = cashier;
+        this.register = register;
+        this.cashier.addSession(this);
+        this.register.addSession(this);
+    }
 
-	/**
-	 * Removes a Sale from the collection of Sales
-	 * @param sale Sale to remove from the collection of Sales
-	 */
-	public void removeSale(Sale sale) 
-	{
-		sales.remove(sale);
-	}
+    public Cashier getCashier() {
+        return this.cashier;
+    }
 
-	/**
-	 * Calculates the difference between current cash in the drawer of the register and how much that was in the drawer in the beginning.
-	 * @param cash Amount of cash in the drawer at the beginning of the Session
-	 * @return Difference between current cash in the drawer of the register and how much that was in the drawer in the beginning
-	 */
-	public BigDecimal calcCashCountDiff(BigDecimal cash) //AC
-	{
-		return cash.subtract(register.getCashDrawer().getCash());
-	}
+    public void setCashier(Cashier cashier) {
+        this.cashier = cashier;
+    }
 
-	/**
-	 * Makes a string representation of a Session
-	 * @return String representation of a Session
-	 */
-	public String toString() 
-	{
-		String result = new  String("\nSession: Cashier: " + cashier.getPerson().getName() + " on register: " + register.getNumber());
-		
-		result += "\nSession Start: " + startDateTime.format(DateTimeFormatter.ofPattern("M/d/yyyy"));
-		
-		for(Sale s : sales)
-		{
-			result += s.toString();
-		}
-		
-		return result;
-	}
+    public Register getRegister() {
+        return this.register;
+    }
 
+    public void setRegister(Register register) {
+        this.register = register;
+    }
+
+    public List<Sale> getSales() {
+        return sales;
+    }
+
+    public LocalDateTime getStartDateTime() {
+        return this.startDateTime;
+    }
+
+    public void setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+
+    public LocalDateTime getEndDateTime() {
+        return this.endDateTime;
+    }
+
+    public void setEndDateTime(LocalDateTime endDateTime) {
+        this.endDateTime = endDateTime;
+    }
+
+    /**
+     * Adds a sale to this session.
+     *
+     * @param sale the sale to add
+     */
+    public void addSale(Sale sale) {
+        sales.add(sale);
+    }
+
+    /**
+     * Removes a sale from this session.
+     *
+     * @param sale the sale to remove
+     */
+    public void removeSale(Sale sale) {
+        sales.remove(sale);
+    }
+
+    /**
+     * Calculates the difference between an expected cash amount and the register drawer's balance.
+     *
+     * @param cash the expected starting cash amount
+     * @return {@code cash} minus the drawer's current balance
+     */
+    public BigDecimal calcCashCountDiff(BigDecimal cash) {
+        return cash.subtract(register.getCashDrawer().getCash());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result =
+                new StringBuilder(
+                        "\nSession: Cashier: "
+                                + cashier.getPerson().getName()
+                                + " on register: "
+                                + register.getNumber());
+        result.append("\nSession Start: ").append(DateUtils.format(startDateTime.toLocalDate()));
+        for (Sale s : sales) {
+            result.append(s.toString());
+        }
+        return result.toString();
+    }
 }

@@ -1,154 +1,157 @@
 package POSUI;
 
+import POSPD.StoreService;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import POSPD.StoreService;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-
 public class POSFrame extends JFrame {
 
-	private JPanel contentPane;
+    private JPanel contentPane;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void run(StoreService storeService) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					POSFrame frame = new POSFrame(storeService);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+    /** Launch the application. */
+    public static void run(StoreService storeService) {
+        EventQueue.invokeLater(
+                new Runnable() {
+                    public void run() {
+                        try {
+                            POSFrame frame = new POSFrame(storeService);
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
 
-	/**
-	 * Create the frame.
-	 */
-	public POSFrame(StoreService storeService)// creates maintainance screen
-	{
-		JFrame currentFrame = this;
+    /** Create the frame. */
+    public POSFrame(StoreService storeService) // creates maintainance screen
+            {
+        JFrame currentFrame = this;
 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 800, 600);
 
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
 
-		JMenu mnMaintenance = new JMenu("Maintain");
-		menuBar.add(mnMaintenance);
+        JMenu mnMaintenance = new JMenu("Maintain");
+        menuBar.add(mnMaintenance);
 
-		JMenuItem mntmStore = new JMenuItem("Store");
-		mntmStore.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new StoreEditPanel(currentFrame, storeService));
-				getContentPane().revalidate();
-			}
-		});
-		mnMaintenance.add(mntmStore);
+        JMenuItem mntmStore = new JMenuItem("Store");
+        mntmStore.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new StoreEditPanel(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnMaintenance.add(mntmStore);
 
-		JMenuItem mntmTaxcategories = new JMenuItem("TaxCategories");
-		mntmTaxcategories.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new TaxCategoryListPanel(currentFrame, storeService.getStore()));
-				getContentPane().revalidate();
-			}
-		});
-		mnMaintenance.add(mntmTaxcategories);
+        JMenuItem mntmTaxcategories = new JMenuItem("TaxCategories");
+        mntmTaxcategories.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new TaxCategoryListPanel(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnMaintenance.add(mntmTaxcategories);
 
-		JMenuItem mntmRegisters = new JMenuItem("Registers");
-		mntmRegisters.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new RegisterListPanel(currentFrame, storeService.getStore()));
-				getContentPane().revalidate();
-			}
-		});
-		mnMaintenance.add(mntmRegisters);
+        JMenuItem mntmRegisters = new JMenuItem("Registers");
+        mntmRegisters.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new RegisterListPanel(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnMaintenance.add(mntmRegisters);
 
-		JMenuItem mntmCashiers = new JMenuItem("Cashiers");
-		mntmCashiers.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new CashierListPanel(currentFrame, storeService.getStore()));
-				getContentPane().revalidate();
-			}
-		});
-		mnMaintenance.add(mntmCashiers);
+        JMenuItem mntmCashiers = new JMenuItem("Cashiers");
+        mntmCashiers.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new CashierListPanel(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnMaintenance.add(mntmCashiers);
 
-		JMenuItem mntmItems = new JMenuItem("Items");
-		mntmItems.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new ItemListPanel(currentFrame, storeService.getStore()));
-				getContentPane().revalidate();
-			}
-		});
-		mnMaintenance.add(mntmItems);
+        JMenuItem mntmItems = new JMenuItem("Items");
+        mntmItems.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new ItemListPanel(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnMaintenance.add(mntmItems);
 
-		JMenu mnPos = new JMenu("POS");
-		menuBar.add(mnPos);
+        JMenu mnPos = new JMenu("POS");
+        menuBar.add(mnPos);
 
-		JMenuItem mntmLogin = new JMenuItem("Login");
-		mntmLogin.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new POSLogin(currentFrame, storeService));
-				getContentPane().revalidate();
-			}
-		});
-		mnPos.add(mntmLogin);
+        JMenuItem mntmLogin = new JMenuItem("Login");
+        mntmLogin.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new POSLogin(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnPos.add(mntmLogin);
 
-		JMenu mnReports = new JMenu("Reports");
-		menuBar.add(mnReports);
+        JMenu mnReports = new JMenu("Reports");
+        menuBar.add(mnReports);
 
-		JMenuItem mntmCashierReport = new JMenuItem("Cashier Report");
-		mntmCashierReport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				getContentPane().removeAll();
-				getContentPane().add(new CashierReport(currentFrame, storeService));
-				getContentPane().revalidate();
-			}
-		});
-		mnReports.add(mntmCashierReport);
+        JMenuItem mntmCashierReport = new JMenuItem("Cashier Report");
+        mntmCashierReport.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent arg0) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new CashierReport(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnReports.add(mntmCashierReport);
 
-		JMenuItem mntmItemReport = new JMenuItem("Item Report");
-		mntmItemReport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new ItemReport(currentFrame, storeService));
-				getContentPane().revalidate();
-			}
-		});
-		mnReports.add(mntmItemReport);
+        JMenuItem mntmItemReport = new JMenuItem("Item Report");
+        mntmItemReport.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new ItemReport(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnReports.add(mntmItemReport);
 
-		JMenuItem mntmDailySalesReport = new JMenuItem("Daily Sales Report");
-		mntmDailySalesReport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getContentPane().removeAll();
-				getContentPane().add(new DailySalesReport(currentFrame, storeService));
-				getContentPane().revalidate();
-			}
-		});
-		mnReports.add(mntmDailySalesReport);
-		contentPane = new POSHome(currentFrame, storeService);
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
-	}
-
+        JMenuItem mntmDailySalesReport = new JMenuItem("Daily Sales Report");
+        mntmDailySalesReport.addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        getContentPane().removeAll();
+                        getContentPane().add(new DailySalesReport(currentFrame, storeService));
+                        getContentPane().revalidate();
+                    }
+                });
+        mnReports.add(mntmDailySalesReport);
+        contentPane = new POSHome(currentFrame, storeService);
+        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        contentPane.setLayout(new BorderLayout(0, 0));
+        setContentPane(contentPane);
+    }
 }

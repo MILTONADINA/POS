@@ -1,0 +1,22 @@
+# ----- Java / Maven build output -----
+target/
+*.class
+
+# ----- Logs & scratch output -----
+*.log
+maven_output.txt
+test_out.txt
+
+# ----- IDE / editor -----
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+*.swp
+*~
+
+# ----- OS cruft -----
+.DS_Store
+Thumbs.db

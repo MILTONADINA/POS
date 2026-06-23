@@ -6,53 +6,199 @@
 
     <groupId>com.java.pos</groupId>
     <artifactId>point-of-sale</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Point of Sale</name>
+    <description>A modular Java Swing point-of-sale system: item/price management, tax and
+        promotional pricing, multi-tender payments, cashier sessions, and CSV persistence.</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.jupiter.version>5.10.0</junit.jupiter.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Dependency versions -->
+        <junit.jupiter.version>5.10.2</junit.jupiter.version>
+        <lgooddatepicker.version>11.2.1</lgooddatepicker.version>
+
+        <!-- Plugin versions -->
+        <compiler.plugin.version>3.13.0</compiler.plugin.version>
+        <surefire.plugin.version>3.2.5</surefire.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
+        <shade.plugin.version>3.5.3</shade.plugin.version>
+        <exec.plugin.version>3.1.0</exec.plugin.version>
+        <spotless.plugin.version>2.43.0</spotless.plugin.version>
+        <google.java.format.version>1.22.0</google.java.format.version>
+        <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
+
+        <main.class>POSUI.Start</main.class>
     </properties>
 
     <dependencies>
-        <!-- Custom UI DatePicker Dependency via system path -->
+        <!-- Swing date-picker component (resolved from Maven Central) -->
         <dependency>
             <groupId>com.github.lgooddatepicker</groupId>
             <artifactId>LGoodDatePicker</artifactId>
-            <version>10.4.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/LGoodDatePicker-10.4.1.jar</systemPath>
+            <version>${lgooddatepicker.version}</version>
         </dependency>
 
-        <!-- JUnit 5 for testing -->
+        <!-- JUnit 5 (Jupiter aggregator: api + params + engine) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
+            <!-- Pin the compiler to Java 17 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler.plugin.version}</version>
+            </plugin>
+
+            <!-- Enforce a single, consistent code format (Google Java Format) -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.plugin.version}</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <version>${google.java.format.version}</version>
+                            <style>AOSP</style>
+                        </googleJavaFormat>
+                        <removeUnusedImports/>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Unit-test runner -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${surefire.plugin.version}</version>
             </plugin>
+
+            <!-- Code-coverage measurement and a gate on the domain + persistence layers.
+                 The Swing GUI (POSUI) is excluded: it is not unit-tested. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>POSUI/**</exclude>
+                            </excludes>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.50</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build a self-contained, runnable jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${shade.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${main.class}</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Static analysis: fail the build on real bug patterns (noise excluded with a
+                 documented filter in spotbugs-exclude.xml) -->
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${spotbugs.plugin.version}</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Medium</threshold>
+                    <includeTests>false</includeTests>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- `mvn exec:java` convenience for launching the GUI from source -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${exec.plugin.version}</version>
                 <configuration>
-                    <mainClass>POSUI.Start</mainClass>
+                    <mainClass>${main.class}</mainClass>
                     <includeProjectDependencies>true</includeProjectDependencies>
                     <includePluginDependencies>false</includePluginDependencies>
                 </configuration>
