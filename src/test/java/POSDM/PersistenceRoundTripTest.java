@@ -385,6 +385,18 @@ class PersistenceRoundTripTest {
     }
 
     @Test
+    @DisplayName("an empty store round-trips through save and load and is not treated as corrupt")
+    void emptyStoreRoundTrips(@TempDir Path dir) {
+        Path file = dir.resolve("store.csv");
+        new CsvStoreRepository(file).save(new Store());
+        Store loaded = new CsvStoreRepository(file).load(); // must not throw or quarantine
+        assertEquals("", loaded.getName());
+        assertTrue(loaded.getItems().isEmpty());
+        assertTrue(loaded.getSessions().isEmpty());
+        assertTrue(Files.exists(file), "the empty-store file must not be quarantined/moved aside");
+    }
+
+    @Test
     @DisplayName("the bundled seed loads from the classpath when no data file exists")
     void seedLoadsFromClasspath(@TempDir Path dir) {
         // Point at a non-existent file so the repository falls back to the bundled seed resource.

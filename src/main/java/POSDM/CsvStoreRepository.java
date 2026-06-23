@@ -109,9 +109,15 @@ public class CsvStoreRepository implements StoreRepository {
                 LOG.info("No store data file or seed resource found; starting with an empty store");
                 return store;
             }
-            parse(reader, store);
-            // A present, non-empty file that yields no usable records is corrupt.
-            corrupt = fromDataFile && isEffectivelyEmpty(store) && Files.size(dataFile) > 0;
+            int recognized = parse(reader, store);
+            // A present, non-empty file from which NOT A SINGLE recognized record could be parsed
+            // is
+            // corrupt. Keyed on recognized records (not emptiness) so the canonical empty-store
+            // file
+            // — a lone well-formed "Store," header the writer itself emits — round-trips as an
+            // empty
+            // store instead of being mistaken for corruption.
+            corrupt = fromDataFile && recognized == 0 && Files.size(dataFile) > 0;
         } catch (IOException e) {
             throw new StorePersistenceException("Failed to read store data from " + dataFile, e);
         }
@@ -155,15 +161,6 @@ public class CsvStoreRepository implements StoreRepository {
             LOG.log(Level.WARNING, "Could not move aside the corrupt data file " + dataFile, e);
             return null;
         }
-    }
-
-    private static boolean isEffectivelyEmpty(Store store) {
-        return store.getName().isEmpty()
-                && store.getItems().isEmpty()
-                && store.getCashiers().isEmpty()
-                && store.getRegisters().isEmpty()
-                && store.getTaxCategories().isEmpty()
-                && store.getSessions().isEmpty();
     }
 
     @Override
@@ -218,17 +215,25 @@ public class CsvStoreRepository implements StoreRepository {
 
     // ----- Parsing -------------------------------------------------------------------------------
 
-    private void parse(BufferedReader reader, Store store) throws IOException {
+    /**
+     * Parses the reader into the store, logging and skipping malformed/unknown lines.
+     *
+     * @return the number of recognized records successfully parsed (zero means nothing in the input
+     *     parsed as a known record — i.e. the content is not a store file at all)
+     */
+    private int parse(BufferedReader reader, Store store) throws IOException {
         Session currentSession = null;
         Sale currentSale = null;
         String line;
         int lineNo = 0;
+        int recognized = 0;
         while ((line = reader.readLine()) != null) {
             lineNo++;
             if (line.isBlank()) {
                 continue;
             }
             String[] f = splitCsv(line);
+            boolean knownTag = true;
             try {
                 switch (f[0]) {
                     case STORE:
@@ -294,8 +299,13 @@ public class CsvStoreRepository implements StoreRepository {
                         requireSale(currentSale, lineNo).addPayment(paymentFrom(f, lineNo));
                         break;
                     default:
+                        knownTag = false;
                         LOG.warning(
                                 "Skipping unknown record type '" + f[0] + "' at line " + lineNo);
+                }
+                // Reached only if the known-tag case above did not throw.
+                if (knownTag) {
+                    recognized++;
                 }
             } catch (RuntimeException e) {
                 // Log only the line number, record tag, and exception — never the raw line, which
@@ -307,6 +317,7 @@ public class CsvStoreRepository implements StoreRepository {
                         e);
             }
         }
+        return recognized;
     }
 
     private void parseTaxCategory(String[] f, int lineNo, Store store) {
