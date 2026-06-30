@@ -65,7 +65,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2.3.9
+        uses: gitleaks/gitleaks-action@v3.0.0
         env:
           # Required for the action to determine the commit range on pull_request events.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
