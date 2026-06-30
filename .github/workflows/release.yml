@@ -28,7 +28,7 @@ jobs:
       - name: Generate SHA-256 checksum
         run: cd target && sha256sum point-of-sale-*.jar > checksums.txt
       - name: Attach artifacts to the release
-        uses: softprops/action-gh-release@v2.6.2
+        uses: softprops/action-gh-release@v3.0.1
         with:
           files: |
             target/point-of-sale-*.jar
